@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --page-bg: rgb(253 239 241);
+  --page-accent: rgb(251, 147, 168);
+  --page-accent-hover: rgb(221 83 112);
+  --page-focus: rgba(237, 115, 139, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: var(--page-bg);
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+.app-button {
+  border-radius: 8px;
+  border: 1px solid var(--page-accent);
+  padding: 0.6em 1.25em;
+  font-size: 0.95rem;
+  font-weight: 500;
+  font-family: inherit;
+  line-height: 1;
+  color: white;
+  background-color: var(--page-accent);
+  cursor: pointer;
+  transition: background-color 0.25s, border-color 0.25s, transform 0.2s;
+}
+
+.app-button:hover:not(:disabled) {
+  background-color: var(--page-accent-hover);
+  border-color: var(--page-accent-hover);
+  transform: translateY(-1px);
+}
+
+.app-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.app-button:focus-visible {
+  outline: 3px solid var(--page-focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+}
