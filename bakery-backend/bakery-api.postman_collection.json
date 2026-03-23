@@ -1,0 +1,443 @@
+{
+  "info": {
+    "name": "Bakery API",
+    "description": "REST API for the Bakery Ordering System. Base URL: http://localhost:1313/api/v1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:1313",
+      "type": "string"
+    },
+    {
+      "key": "apiPrefix",
+      "value": "/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "orderId",
+      "value": "",
+      "description": "Set this after creating an order",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "API Status",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": ["{{baseUrl}}"],
+              "path": [""]
+            },
+            "description": "Returns basic API status information."
+          }
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Health check endpoint."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Menu",
+      "item": [
+        {
+          "name": "Get All Categories",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/menu/categories",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["menu", "categories"]
+            },
+            "description": "Returns all categories including their active products."
+          }
+        },
+        {
+          "name": "Get Products",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/menu/products",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["menu", "products"]
+            },
+            "description": "Returns all active products. Optionally filter by categoryId or search term."
+          }
+        },
+        {
+          "name": "Get Products — filter by category",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/menu/products?categoryId=CATEGORY_ID_HERE",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["menu", "products"],
+              "query": [
+                {
+                  "key": "categoryId",
+                  "value": "CATEGORY_ID_HERE",
+                  "description": "UUID of the category"
+                }
+              ]
+            },
+            "description": "Returns products filtered by category."
+          }
+        },
+        {
+          "name": "Get Products — search",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/menu/products?search=torta",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["menu", "products"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "torta",
+                  "description": "Search term to filter products by name"
+                }
+              ]
+            },
+            "description": "Returns products matching the search term."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Create Order — catalog items",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.id) {",
+                  "  pm.collectionVariables.set('orderId', res.data.id);",
+                  "  console.log('orderId saved:', res.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"Ana García\",\n  \"customerPhone\": \"+591 70000000\",\n  \"customerEmail\": \"ana@example.com\",\n  \"fulfillmentType\": \"PICKUP\",\n  \"notes\": \"Sin maní por favor\",\n  \"items\": [\n    {\n      \"productId\": \"PRODUCT_ID_HERE\",\n      \"quantity\": 2,\n      \"notes\": \"Bien cocido\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/orders",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["orders"]
+            },
+            "description": "Creates an order with one or more catalog products. The test script automatically saves the returned order ID to the `orderId` collection variable."
+          }
+        },
+        {
+          "name": "Create Order — custom cake only",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.id) {",
+                  "  pm.collectionVariables.set('orderId', res.data.id);",
+                  "  console.log('orderId saved:', res.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"Luis Mamani\",\n  \"customerPhone\": \"+591 71234567\",\n  \"customerEmail\": \"luis@example.com\",\n  \"fulfillmentType\": \"PICKUP\",\n  \"customCake\": {\n    \"flavor\": \"Red Velvet\",\n    \"filling\": \"Queso crema\",\n    \"frosting\": \"Buttercream\",\n    \"servings\": 20,\n    \"size\": \"Grande\",\n    \"eventDate\": \"2026-04-15T00:00:00Z\",\n    \"messageOnCake\": \"Feliz Cumpleaños!\",\n    \"designNotes\": \"Decoración floral en tonos rosas\",\n    \"allergies\": \"Sin nueces\",\n    \"budgetCents\": 35000\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/orders",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["orders"]
+            },
+            "description": "Creates an order with only a custom cake request (no catalog items required)."
+          }
+        },
+        {
+          "name": "Create Order — delivery with items + custom cake",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.id) {",
+                  "  pm.collectionVariables.set('orderId', res.data.id);",
+                  "  console.log('orderId saved:', res.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"María Flores\",\n  \"customerPhone\": \"+591 79876543\",\n  \"fulfillmentType\": \"DELIVERY\",\n  \"deliveryAddress\": \"Av. Arce 1234, La Paz\",\n  \"notes\": \"Timbre roto, llamar al llegar\",\n  \"items\": [\n    {\n      \"productId\": \"PRODUCT_ID_HERE\",\n      \"quantity\": 1\n    }\n  ],\n  \"customCake\": {\n    \"flavor\": \"Chocolate\",\n    \"filling\": \"Manjar\",\n    \"servings\": 12,\n    \"designNotes\": \"Minimalista con flores secas\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/orders",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["orders"]
+            },
+            "description": "Creates a delivery order combining catalog items and a custom cake. deliveryAddress is required for DELIVERY orders."
+          }
+        },
+        {
+          "name": "Get Order by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/orders/{{orderId}}",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["orders", "{{orderId}}"]
+            },
+            "description": "Returns a single order by its ID. Uses the `orderId` collection variable set after creating an order."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Orders",
+      "item": [
+        {
+          "name": "List All Orders",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/admin/orders",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["admin", "orders"]
+            },
+            "description": "Returns all orders with default pagination."
+          }
+        },
+        {
+          "name": "List Orders — filter by status",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/admin/orders?status=PENDING",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["admin", "orders"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PENDING",
+                  "description": "PENDING | CONFIRMED | IN_PROGRESS | READY | COMPLETED | CANCELLED"
+                }
+              ]
+            },
+            "description": "Filters orders by status. Valid values: PENDING, CONFIRMED, IN_PROGRESS, READY, COMPLETED, CANCELLED."
+          }
+        },
+        {
+          "name": "List Orders — paginated",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/admin/orders?page=1&pageSize=10",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["admin", "orders"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Returns a paginated list of orders."
+          }
+        },
+        {
+          "name": "List Orders — date range",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/admin/orders?from=2026-03-01T00:00:00Z&to=2026-03-31T23:59:59Z",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["admin", "orders"],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-03-01T00:00:00Z",
+                  "description": "ISO 8601 datetime"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-03-31T23:59:59Z",
+                  "description": "ISO 8601 datetime"
+                }
+              ]
+            },
+            "description": "Returns orders created within a date range."
+          }
+        },
+        {
+          "name": "Update Order Status — CONFIRMED",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"CONFIRMED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/admin/orders/{{orderId}}/status",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["admin", "orders", "{{orderId}}", "status"]
+            },
+            "description": "Advances a PENDING order to CONFIRMED."
+          }
+        },
+        {
+          "name": "Update Order Status — IN_PROGRESS",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"IN_PROGRESS\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/admin/orders/{{orderId}}/status",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["admin", "orders", "{{orderId}}", "status"]
+            },
+            "description": "Advances a CONFIRMED order to IN_PROGRESS."
+          }
+        },
+        {
+          "name": "Update Order Status — READY",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"READY\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/admin/orders/{{orderId}}/status",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["admin", "orders", "{{orderId}}", "status"]
+            },
+            "description": "Advances an IN_PROGRESS order to READY."
+          }
+        },
+        {
+          "name": "Update Order Status — COMPLETED",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"COMPLETED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/admin/orders/{{orderId}}/status",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["admin", "orders", "{{orderId}}", "status"]
+            },
+            "description": "Marks a READY order as COMPLETED."
+          }
+        },
+        {
+          "name": "Update Order Status — CANCELLED",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"CANCELLED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/admin/orders/{{orderId}}/status",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["admin", "orders", "{{orderId}}", "status"]
+            },
+            "description": "Cancels an order. Can be applied at any non-terminal stage (PENDING, CONFIRMED, IN_PROGRESS, READY)."
+          }
+        }
+      ]
+    }
+  ]
+}
