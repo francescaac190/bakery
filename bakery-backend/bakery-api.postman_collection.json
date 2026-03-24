@@ -68,6 +68,28 @@
           }
         },
         {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tortas\",\n  \"imageUrl\": \"https://example.com/tortas.jpg\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/menu/categories",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["menu", "categories"]
+            },
+            "description": "Creates a new category. `name` is required and must be unique. `imageUrl` is optional. Returns 201 with the created category."
+          }
+        },
+        {
           "name": "Get Products",
           "request": {
             "method": "GET",
@@ -115,6 +137,28 @@
               ]
             },
             "description": "Returns products matching the search term."
+          }
+        },
+        {
+          "name": "Create Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Torta de Chocolate\",\n  \"description\": \"Torta esponjosa de chocolate con cobertura de ganache\",\n  \"priceCents\": 8500,\n  \"currency\": \"BOB\",\n  \"isActive\": true,\n  \"isCustom\": false,\n  \"categoryId\": \"CATEGORY_ID_HERE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/menu/products",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["menu", "products"]
+            },
+            "description": "Creates a new product. `priceCents` is required and must be a positive integer (e.g. 8500 = 85.00 BOB). `categoryId` is optional. Returns 201 with the created product including its category."
           }
         }
       ]

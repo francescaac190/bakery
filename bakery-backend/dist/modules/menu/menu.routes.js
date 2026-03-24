@@ -1,6 +1,11 @@
-import { Router } from "express";
-import { menuController } from "./menu.controller";
-export const menuRouter = Router();
-menuRouter.get("/categories", menuController.getCategories);
-menuRouter.get("/products", menuController.getProducts);
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.menuRouter = void 0;
+const express_1 = require("express");
+const menu_controller_1 = require("./menu.controller");
+exports.menuRouter = (0, express_1.Router)();
+exports.menuRouter.get("/categories", menu_controller_1.menuController.getCategories);
+exports.menuRouter.post("/categories", menu_controller_1.menuController.createCategory);
+exports.menuRouter.get("/products", menu_controller_1.menuController.getProducts);
+exports.menuRouter.post("/products", menu_controller_1.menuController.createProduct);
 //# sourceMappingURL=menu.routes.js.map

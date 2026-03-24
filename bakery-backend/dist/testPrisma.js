@@ -1,8 +1,9 @@
-import { PrismaClient } from "@prisma/client/extension";
-const prisma = new PrismaClient();
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const prisma_1 = require("./db/prisma");
 async function main() {
     // 1️⃣ Create a product
-    const product = await prisma.product.create({
+    const product = await prisma_1.prisma.product.create({
         data: {
             name: "Chocolate Cake",
             priceCents: 12000,
@@ -11,7 +12,7 @@ async function main() {
     });
     console.log("Created product:", product);
     // 2️⃣ Fetch all products
-    const products = await prisma.product.findMany();
+    const products = await prisma_1.prisma.product.findMany();
     console.log("All products:", products);
 }
 main()
@@ -19,6 +20,6 @@ main()
     console.error(e);
 })
     .finally(async () => {
-    await prisma.$disconnect();
+    await prisma_1.prisma.$disconnect();
 });
 //# sourceMappingURL=testPrisma.js.map

@@ -1,5 +1,5 @@
 import { prisma } from "../../db/prisma";
-import type { GetProductsFilters } from "./menu.types";
+import type { CreateCategoryInput, CreateProductInput, GetProductsFilters } from "./menu.types";
 
 async function findCategoriesWithActiveProducts() {
   return prisma.category.findMany({
@@ -32,7 +32,20 @@ async function findActiveProducts(filters: GetProductsFilters) {
   });
 }
 
+async function createCategory(data: CreateCategoryInput) {
+  return prisma.category.create({ data });
+}
+
+async function createProduct(data: CreateProductInput) {
+  return prisma.product.create({
+    data,
+    include: { category: true },
+  });
+}
+
 export const menuRepository = {
   findCategoriesWithActiveProducts,
   findActiveProducts,
+  createCategory,
+  createProduct,
 };

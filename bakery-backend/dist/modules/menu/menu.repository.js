@@ -1,6 +1,9 @@
-import { prisma } from "../../db/prisma";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.menuRepository = void 0;
+const prisma_1 = require("../../db/prisma");
 async function findCategoriesWithActiveProducts() {
-    return prisma.category.findMany({
+    return prisma_1.prisma.category.findMany({
         orderBy: { name: "asc" },
         include: {
             products: {
@@ -11,7 +14,7 @@ async function findCategoriesWithActiveProducts() {
     });
 }
 async function findActiveProducts(filters) {
-    return prisma.product.findMany({
+    return prisma_1.prisma.product.findMany({
         where: {
             isActive: true,
             categoryId: filters.categoryId || undefined,
@@ -28,8 +31,19 @@ async function findActiveProducts(filters) {
         },
     });
 }
-export const menuRepository = {
+async function createCategory(data) {
+    return prisma_1.prisma.category.create({ data });
+}
+async function createProduct(data) {
+    return prisma_1.prisma.product.create({
+        data,
+        include: { category: true },
+    });
+}
+exports.menuRepository = {
     findCategoriesWithActiveProducts,
     findActiveProducts,
+    createCategory,
+    createProduct,
 };
 //# sourceMappingURL=menu.repository.js.map

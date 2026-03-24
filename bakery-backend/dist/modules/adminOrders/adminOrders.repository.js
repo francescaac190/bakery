@@ -1,4 +1,7 @@
-import { prisma } from "../../db/prisma";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.adminOrdersRepository = void 0;
+const prisma_1 = require("../../db/prisma");
 async function listOrders(filters) {
     const where = {
         status: filters.status,
@@ -9,8 +12,8 @@ async function listOrders(filters) {
             }
             : undefined,
     };
-    const [items, total] = await prisma.$transaction([
-        prisma.order.findMany({
+    const [items, total] = await prisma_1.prisma.$transaction([
+        prisma_1.prisma.order.findMany({
             where,
             include: {
                 items: true,
@@ -19,24 +22,24 @@ async function listOrders(filters) {
             skip: filters.skip,
             take: filters.take,
         }),
-        prisma.order.count({ where }),
+        prisma_1.prisma.order.count({ where }),
     ]);
     return { items, total };
 }
 async function findOrderById(orderId) {
-    return prisma.order.findUnique({
+    return prisma_1.prisma.order.findUnique({
         where: { id: orderId },
     });
 }
 async function updateOrderStatus(orderId, status) {
-    return prisma.order.update({
+    return prisma_1.prisma.order.update({
         where: { id: orderId },
         data: {
             status,
         },
     });
 }
-export const adminOrdersRepository = {
+exports.adminOrdersRepository = {
     listOrders,
     findOrderById,
     updateOrderStatus,

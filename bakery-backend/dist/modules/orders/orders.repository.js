@@ -1,9 +1,12 @@
-import { prisma } from "../../db/prisma";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ordersRepository = void 0;
+const prisma_1 = require("../../db/prisma");
 async function findActiveProductsByIds(productIds) {
     if (productIds.length === 0) {
         return [];
     }
-    return prisma.product.findMany({
+    return prisma_1.prisma.product.findMany({
         where: {
             id: { in: productIds },
             isActive: true,
@@ -11,7 +14,7 @@ async function findActiveProductsByIds(productIds) {
     });
 }
 async function createOrderWithItems(input) {
-    return prisma.$transaction(async (tx) => {
+    return prisma_1.prisma.$transaction(async (tx) => {
         const order = await tx.order.create({
             data: {
                 fulfillmentType: input.fulfillmentType,
@@ -70,7 +73,7 @@ async function createOrderWithItems(input) {
     });
 }
 async function findOrderById(orderId) {
-    return prisma.order.findUnique({
+    return prisma_1.prisma.order.findUnique({
         where: { id: orderId },
         include: {
             items: {
@@ -82,7 +85,7 @@ async function findOrderById(orderId) {
         },
     });
 }
-export const ordersRepository = {
+exports.ordersRepository = {
     findActiveProductsByIds,
     createOrderWithItems,
     findOrderById,

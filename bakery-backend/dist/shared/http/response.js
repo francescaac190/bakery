@@ -1,11 +1,15 @@
-export function sendSuccess(res, data, statusCode = 200) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.sendSuccess = sendSuccess;
+exports.sendError = sendError;
+function sendSuccess(res, data, statusCode = 200) {
     return res.status(statusCode).json({
         success: true,
         data,
         error: null,
     });
 }
-export function sendError(res, message, statusCode = 500, details) {
+function sendError(res, message, statusCode = 500, details) {
     return res.status(statusCode).json({
         success: false,
         data: null,

@@ -37,6 +37,7 @@ model Product {
   priceCents  Int
   currency    String  @default("BOB")
   isActive    Boolean @default(true)
+  isCustom    Boolean @default(false)
 
   categoryId String?
   category   Category? @relation(fields: [categoryId], references: [id])

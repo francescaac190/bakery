@@ -1,5 +1,8 @@
-import { z } from "zod";
-const statusEnum = z.enum([
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.updateOrderStatusBodySchema = exports.updateOrderStatusParamsSchema = exports.listOrdersQuerySchema = void 0;
+const zod_1 = require("zod");
+const statusEnum = zod_1.z.enum([
     "PENDING",
     "CONFIRMED",
     "IN_PROGRESS",
@@ -7,17 +10,17 @@ const statusEnum = z.enum([
     "COMPLETED",
     "CANCELLED",
 ]);
-export const listOrdersQuerySchema = z.object({
+exports.listOrdersQuerySchema = zod_1.z.object({
     status: statusEnum.optional(),
-    from: z.string().datetime().optional(),
-    to: z.string().datetime().optional(),
-    page: z.string().optional(),
-    pageSize: z.string().optional(),
+    from: zod_1.z.string().datetime().optional(),
+    to: zod_1.z.string().datetime().optional(),
+    page: zod_1.z.string().optional(),
+    pageSize: zod_1.z.string().optional(),
 });
-export const updateOrderStatusParamsSchema = z.object({
-    id: z.string().trim().min(1),
+exports.updateOrderStatusParamsSchema = zod_1.z.object({
+    id: zod_1.z.string().trim().min(1),
 });
-export const updateOrderStatusBodySchema = z.object({
+exports.updateOrderStatusBodySchema = zod_1.z.object({
     status: statusEnum,
 });
 //# sourceMappingURL=adminOrders.schemas.js.map

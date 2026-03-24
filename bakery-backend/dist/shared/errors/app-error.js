@@ -1,4 +1,7 @@
-export class AppError extends Error {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AppError = void 0;
+class AppError extends Error {
     statusCode;
     code;
     details;
@@ -9,4 +12,5 @@ export class AppError extends Error {
         this.details = details;
     }
 }
+exports.AppError = AppError;
 //# sourceMappingURL=app-error.js.map

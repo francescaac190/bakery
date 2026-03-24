@@ -1,17 +1,20 @@
-import { sendSuccess } from "../../shared/http/response";
-import { createOrderSchema, orderIdParamsSchema } from "./orders.schemas";
-import { ordersService } from "./orders.service";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ordersController = void 0;
+const response_1 = require("../../shared/http/response");
+const orders_schemas_1 = require("./orders.schemas");
+const orders_service_1 = require("./orders.service");
 async function createOrder(req, res) {
-    const body = createOrderSchema.parse(req.body);
-    const order = await ordersService.createOrder(body);
-    return sendSuccess(res, order, 201);
+    const body = orders_schemas_1.createOrderSchema.parse(req.body);
+    const order = await orders_service_1.ordersService.createOrder(body);
+    return (0, response_1.sendSuccess)(res, order, 201);
 }
 async function getOrderById(req, res) {
-    const params = orderIdParamsSchema.parse(req.params);
-    const order = await ordersService.getOrderById(params.id);
-    return sendSuccess(res, order);
+    const params = orders_schemas_1.orderIdParamsSchema.parse(req.params);
+    const order = await orders_service_1.ordersService.getOrderById(params.id);
+    return (0, response_1.sendSuccess)(res, order);
 }
-export const ordersController = {
+exports.ordersController = {
     createOrder,
     getOrderById,
 };

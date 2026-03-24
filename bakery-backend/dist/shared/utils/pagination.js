@@ -1,4 +1,7 @@
-export function parsePagination(pageInput, pageSizeInput, maxPageSize = 100) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.parsePagination = parsePagination;
+function parsePagination(pageInput, pageSizeInput, maxPageSize = 100) {
     const rawPage = Number(pageInput ?? "1");
     const rawPageSize = Number(pageSizeInput ?? "20");
     const page = Number.isFinite(rawPage) && rawPage > 0 ? Math.floor(rawPage) : 1;

@@ -9,6 +9,7 @@ type SeedCategory = {
     priceCents: number;
     currency?: string;
     isActive?: boolean;
+    isCustom?: boolean;
   }>;
 };
 
@@ -20,16 +21,19 @@ const seedCatalog: SeedCategory[] = [
         name: "Chocolate Cake",
         description: "Classic chocolate sponge with ganache.",
         priceCents: 12000,
+        isCustom: true,
       },
       {
         name: "Red Velvet Cake",
         description: "Cream cheese frosting, 10 servings.",
         priceCents: 14000,
+        isCustom: true,
       },
       {
         name: "Vanilla Berry Cake",
         description: "Vanilla sponge with berries and whipped cream.",
         priceCents: 13500,
+        isCustom: true,
       },
     ],
   },
@@ -104,6 +108,7 @@ async function seed() {
         priceCents: product.priceCents,
         currency: product.currency ?? "BOB",
         isActive: product.isActive ?? true,
+        isCustom: product.isCustom ?? false,
         categoryId: categoryRecord.id,
       })),
     });

@@ -1,35 +1,38 @@
-import { z } from "zod";
-const isoDateSchema = z
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.orderIdParamsSchema = exports.createOrderSchema = void 0;
+const zod_1 = require("zod");
+const isoDateSchema = zod_1.z
     .string()
     .datetime({ offset: true })
-    .or(z.string().datetime());
-const customCakeSchema = z.object({
+    .or(zod_1.z.string().datetime());
+const customCakeSchema = zod_1.z.object({
     eventDate: isoDateSchema.optional(),
-    servings: z.number().int().positive().optional(),
-    size: z.string().trim().min(1).max(50).optional(),
-    flavor: z.string().trim().min(1).max(100).optional(),
-    filling: z.string().trim().min(1).max(100).optional(),
-    frosting: z.string().trim().min(1).max(100).optional(),
-    messageOnCake: z.string().trim().max(120).optional(),
-    designNotes: z.string().trim().max(1000).optional(),
-    allergies: z.string().trim().max(300).optional(),
-    inspirationImage: z.string().url().optional(),
-    budgetCents: z.number().int().nonnegative().optional(),
+    servings: zod_1.z.number().int().positive().optional(),
+    size: zod_1.z.string().trim().min(1).max(50).optional(),
+    flavor: zod_1.z.string().trim().min(1).max(100).optional(),
+    filling: zod_1.z.string().trim().min(1).max(100).optional(),
+    frosting: zod_1.z.string().trim().min(1).max(100).optional(),
+    messageOnCake: zod_1.z.string().trim().max(120).optional(),
+    designNotes: zod_1.z.string().trim().max(1000).optional(),
+    allergies: zod_1.z.string().trim().max(300).optional(),
+    inspirationImage: zod_1.z.string().url().optional(),
+    budgetCents: zod_1.z.number().int().nonnegative().optional(),
 });
-export const createOrderSchema = z
+exports.createOrderSchema = zod_1.z
     .object({
-    customerName: z.string().trim().min(2).max(120),
-    customerPhone: z.string().trim().min(5).max(30),
-    customerEmail: z.string().email().optional(),
-    fulfillmentType: z.enum(["PICKUP", "DELIVERY"]),
+    customerName: zod_1.z.string().trim().min(2).max(120),
+    customerPhone: zod_1.z.string().trim().min(5).max(30),
+    customerEmail: zod_1.z.string().email().optional(),
+    fulfillmentType: zod_1.z.enum(["PICKUP", "DELIVERY"]),
     pickupAt: isoDateSchema.optional(),
-    deliveryAddress: z.string().trim().min(5).max(300).optional(),
-    notes: z.string().trim().max(1000).optional(),
-    items: z
-        .array(z.object({
-        productId: z.string().trim().min(1),
-        quantity: z.number().int().positive(),
-        notes: z.string().trim().max(300).optional(),
+    deliveryAddress: zod_1.z.string().trim().min(5).max(300).optional(),
+    notes: zod_1.z.string().trim().max(1000).optional(),
+    items: zod_1.z
+        .array(zod_1.z.object({
+        productId: zod_1.z.string().trim().min(1),
+        quantity: zod_1.z.number().int().positive(),
+        notes: zod_1.z.string().trim().max(300).optional(),
     }))
         .default([]),
     customCake: customCakeSchema.optional(),
@@ -57,7 +60,7 @@ export const createOrderSchema = z
         });
     }
 });
-export const orderIdParamsSchema = z.object({
-    id: z.string().trim().min(1),
+exports.orderIdParamsSchema = zod_1.z.object({
+    id: zod_1.z.string().trim().min(1),
 });
 //# sourceMappingURL=orders.schemas.js.map
