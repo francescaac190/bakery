@@ -6,6 +6,7 @@ export type Product = {
     priceCents: number;
     currency: string;
     isActive: boolean;
+    isCustom: boolean;
     categoryId: string;
     categoryName: string;
     categoryImageUrl?: string;

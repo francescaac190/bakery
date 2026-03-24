@@ -1,7 +1,7 @@
 import { getJson } from "../../api/http";
 import type { Product } from "./types";
 
-const BASE_URL = 'http://localhost:1313/api/v1/menu/products';
+const BASE_URL = `${import.meta.env.VITE_API_URL}/menu/products`;
 
 type ApiResponse<T> = {
     success: boolean;

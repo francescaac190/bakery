@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { AppButton } from './AppButton'
 
 export type CakeOrderDetails = {
@@ -43,23 +43,16 @@ export function Modal({
 
   useEffect(() => {
     if (!isOpen) return
-
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose()
     }
-
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [isOpen, onClose])
 
   useEffect(() => {
     if (!isOpen || !showCakeForm) return
-
-    // setFlavor(initialValues?.flavor ?? '')
-    // setFilling(initialValues?.filling ?? '')
-    // setServings(initialValues?.servings ?? 10)
-    // setDesignImage(initialValues?.designImage ?? null)
-    // setNotes(initialValues?.notes ?? '')
+    void initialValues
   }, [isOpen, showCakeForm, initialValues])
 
   if (!isOpen) return null
@@ -76,26 +69,24 @@ export function Modal({
       onConfirm()
       return
     }
-
     if (!canSubmit) return
-
-    onConfirm({
-      flavor: flavor.trim(),
-      filling: filling.trim(),
-      servings,
-      designImage,
-      notes: notes.trim(),
-    })
+    onConfirm({ flavor: flavor.trim(), filling: filling.trim(), servings, designImage, notes: notes.trim() })
   }
 
-  const handleSubmit = (event: FormEvent) => {
+  const handleSubmit = (event: { preventDefault(): void }) => {
     event.preventDefault()
     handleConfirm()
   }
 
+  const selectClass =
+    'w-full rounded-xl border border-stone-200 bg-stone-50 px-4 py-2.5 text-sm text-stone-700 outline-none transition focus:border-rose-300 focus:bg-white focus:ring-2 focus:ring-rose-100'
+
+  const inputClass =
+    'w-full rounded-xl border border-stone-200 bg-stone-50 px-4 py-2.5 text-sm text-stone-700 outline-none transition focus:border-rose-300 focus:bg-white focus:ring-2 focus:ring-rose-100'
+
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose()
       }}
@@ -105,21 +96,24 @@ export function Modal({
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
-        className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+        className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl"
       >
-        <h2 id={titleId} className="text-xl font-semibold text-gray-900">
-          {modalTitle}
-        </h2>
-        <p id={descriptionId} className="mt-2 text-gray-600">
-          {modalDescription}
-        </p>
+        {/* Modal header */}
+        <div className="border-b border-stone-100 px-6 py-5">
+          <h2 id={titleId} className="font-display text-xl font-semibold text-stone-800">
+            {modalTitle}
+          </h2>
+          <p id={descriptionId} className="mt-1 text-sm text-stone-500">
+            {modalDescription}
+          </p>
+        </div>
 
         {!showCakeForm && (
-          <div className="mt-6 flex justify-end gap-3">
+          <div className="flex justify-end gap-3 px-6 py-5">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50"
+              className="rounded-full border border-stone-200 px-5 py-2 text-sm font-semibold text-stone-600 transition hover:bg-stone-50"
             >
               {cancelText}
             </button>
@@ -130,30 +124,26 @@ export function Modal({
         )}
 
         {showCakeForm && (
-          <form onSubmit={handleSubmit} className="mt-5 space-y-4">
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-800">Que sabor?</label>
-              <select
-                value={flavor}
-                onChange={(event) => setFlavor(event.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-pink-300"
-              >
+          <form onSubmit={handleSubmit} className="space-y-4 px-6 py-5">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">
+                Sabor
+              </label>
+              <select value={flavor} onChange={(e) => setFlavor(e.target.value)} className={selectClass}>
                 <option value="">Selecciona un sabor</option>
                 <option value="Vainilla">Vainilla</option>
                 <option value="Chocolate">Chocolate</option>
                 <option value="Red Velvet">Red Velvet</option>
                 <option value="Zanahoria">Zanahoria</option>
-                <option value="Limon">Limon</option>
+                <option value="Limon">Limón</option>
               </select>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-800">Que relleno?</label>
-              <select
-                value={filling}
-                onChange={(event) => setFilling(event.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-pink-300"
-              >
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">
+                Relleno
+              </label>
+              <select value={filling} onChange={(e) => setFilling(e.target.value)} className={selectClass}>
                 <option value="">Selecciona un relleno</option>
                 <option value="Manjar">Manjar</option>
                 <option value="Crema pastelera">Crema pastelera</option>
@@ -163,49 +153,55 @@ export function Modal({
               </select>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-800">Para cuantas personas?</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">
+                Personas
+              </label>
               <input
                 type="number"
                 min={1}
                 value={servings}
-                onChange={(event) => setServings(Number(event.target.value))}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-pink-300"
+                onChange={(e) => setServings(Number(e.target.value))}
+                className={inputClass}
                 placeholder="Ej: 10"
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-800">Adjuntar diseno (opcional)</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">
+                Diseño (opcional)
+              </label>
               <input
                 type="file"
                 accept="image/*"
-                onChange={(event) => setDesignImage(event.target.files?.[0] ?? null)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-pink-100 file:px-3 file:py-1 file:text-pink-700 hover:file:bg-pink-200"
+                onChange={(e) => setDesignImage(e.target.files?.[0] ?? null)}
+                className="w-full rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-600 file:mr-3 file:rounded-lg file:border-0 file:bg-rose-100 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-rose-600 transition hover:file:bg-rose-200"
               />
               {designImage && (
-                <p className="text-xs text-gray-600">
-                  Archivo: <span className="font-medium">{designImage.name}</span>
+                <p className="text-xs text-stone-500">
+                  Archivo: <span className="font-semibold text-rose-500">{designImage.name}</span>
                 </p>
               )}
             </div>
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-800">Observaciones</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">
+                Observaciones
+              </label>
               <textarea
                 value={notes}
-                onChange={(event) => setNotes(event.target.value)}
+                onChange={(e) => setNotes(e.target.value)}
                 rows={3}
-                className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-pink-300"
+                className={`${inputClass} resize-none`}
                 placeholder="Ej: sin nueces, entregar antes de las 5pm"
               />
             </div>
 
-            <div className="flex justify-end gap-3 pt-2">
+            <div className="flex justify-end gap-3 pt-1">
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50"
+                className="rounded-full border border-stone-200 px-5 py-2 text-sm font-semibold text-stone-600 transition hover:bg-stone-50"
               >
                 {cancelText}
               </button>
