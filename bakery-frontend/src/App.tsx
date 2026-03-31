@@ -4,19 +4,19 @@ import { CartProvider } from "./features/products/context/CartContext";
 import { ProductsPage } from "./features/products/pages/ProductsPage";
 import PersonalizaPage from "./features/products/pages/PersonalizaPage";
 import { ProductDetailPage } from "./features/products/pages/ProductDetailPage";
+import { PedidoPage } from "./features/pedidos/pages/PedidoPage";
 
 function App() {
   return (
     <BrowserRouter>
       <CartProvider>
         <main>
-          <div className="bg-background w-screen h-screen p-8">
-            <Routes>
-              <Route path="/" element={<ProductsPage />} />
-              <Route path="/personaliza" element={<PersonalizaPage />} />
-              <Route path="/products/:id" element={<ProductDetailPage />} />
-            </Routes>
-          </div>
+          <Routes>
+            <Route path="/" element={<ProductsPage />} />
+            <Route path="/products/:id" element={<ProductDetailPage />} />
+            <Route path="/personaliza" element={<PersonalizaPage />} />
+            <Route path="/pedido" element={<PedidoPage />} />
+          </Routes>
         </main>
       </CartProvider>
     </BrowserRouter>

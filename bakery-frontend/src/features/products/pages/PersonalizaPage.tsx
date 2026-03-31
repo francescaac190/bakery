@@ -1,159 +1,239 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import Input from "../../../components/ui/input";
 import ChipSelector from "../../../components/ui/ChipSelector";
 import type { Product } from "../types";
+import { useCart } from "../context/CartContext";
+
+const SERVINGS_OPTIONS = [
+  { label: "Mini (2 personas)", value: "Mini (2 personas)" },
+  { label: "5 personas", value: "5 personas" },
+  { label: "10 personas", value: "10 personas" },
+  { label: "20 personas", value: "20 personas" },
+  { label: "30 personas", value: "30 personas" },
+];
+
+const FLAVOR_OPTIONS = [
+  { label: "Vainilla", value: "Vainilla" },
+  { label: "Chocolate", value: "Chocolate" },
+  { label: "Red Velvet", value: "Red Velvet" },
+  { label: "Zanahoria", value: "Zanahoria" },
+  { label: "Limón", value: "Limón" },
+];
+
+const FILLING_OPTIONS = [
+  { label: "Chocolate", value: "Chocolate" },
+  { label: "Brigadeiro", value: "Brigadeiro" },
+  { label: "Manjar", value: "Manjar" },
+  { label: "Crema pastelera", value: "Crema pastelera" },
+  { label: "Queso crema", value: "Queso crema" },
+];
+
+const FROSTING_OPTIONS = [
+  { label: "Sin cobertura", value: "Sin cobertura" },
+  { label: "Chocolate", value: "Chocolate" },
+  { label: "Queso crema", value: "Queso crema" },
+];
 
 export default function PersonalizaPage() {
-  const { state } = useLocation() as { state: { product: Product } };
+  const { state } = useLocation() as { state?: { product?: Product } };
   const navigate = useNavigate();
-  const [quantity, setQuantity] = useState("1");
-  const [flavor, setFlavor] = useState("1");
-  const [filling, setFilling] = useState("1");
-  const [cover, setCover] = useState("1");
-  const [designImage, setDesignImage] = useState<File | null>(null);
+  const { customCake, setCustomCake } = useCart();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Pre-fill from existing cart customCake (editing mode)
+  const isEditing = customCake !== null;
+
+  const [servings, setServings] = useState<string | null>(customCake?.servings ?? null);
+  const [flavor, setFlavor] = useState<string | null>(customCake?.flavor ?? null);
+  const [filling, setFilling] = useState<string | null>(customCake?.filling ?? null);
+  const [frosting, setFrosting] = useState<string | null>(customCake?.frosting ?? null);
+  const [messageOnCake, setMessageOnCake] = useState(customCake?.messageOnCake ?? "");
+  const [designNotes, setDesignNotes] = useState(customCake?.designNotes ?? "");
+  const [imageFile, setImageFile] = useState<File | null>(customCake?.inspirationImageFile ?? null);
+  const [imagePreview, setImagePreview] = useState<string | null>(customCake?.inspirationImagePreview ?? null);
+
+  // Resolve product — from navigation state or from existing cart cake
+  const product = state?.product ?? (customCake ? { id: customCake.productId, name: customCake.productName } as Product : null);
+
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0] ?? null;
+    setImageFile(file);
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    if (file) {
+      setImagePreview(URL.createObjectURL(file));
+    } else {
+      setImagePreview(null);
+    }
+  }
+
+  function handleSubmit() {
+    if (!product) return;
+    setCustomCake({
+      productId: product.id,
+      productName: product.name,
+      servings,
+      flavor,
+      filling,
+      frosting,
+      messageOnCake,
+      designNotes,
+      inspirationImageFile: imageFile,
+      inspirationImagePreview: imagePreview,
+    });
+    navigate("/");
+  }
 
   return (
-    <div>
-      <section className="bg-background2 sticky rounded-2xl p-8 space-y-4">
-        <div className="bg-background3 rounded-xl p-4">
+    <div className="min-h-screen bg-background5">
+      <div className="mx-auto max-w-lg px-4 py-6 space-y-4">
+
+        {/* Header */}
+        <div className="bg-white rounded-2xl border border-border-card p-6">
           <button
             onClick={() => navigate(-1)}
-            className="mb-3 text-sm font-semibold text-primary hover:underline"
+            className="mb-3 text-sm font-mono font-semibold text-text-primary hover:underline"
           >
             ← Volver
           </button>
-          <h1 className="text-2xl font-bold text-text-primary">
-            Personaliza tu {state?.product?.name ?? "Torta"}
+          <h1 className="font-display text-2xl font-bold text-text-heading">
+            Personaliza tu {product?.name ?? "Torta"}
           </h1>
-          <p className="fontFamily-body font-regular leading-tight text-text-secondary mt-2">
-            Completa este formulario guiado para pasar a revisión de tu pedido.
+          <p className="font-mono text-sm text-text-muted mt-1">
+            Completa los detalles para que podamos preparar tu torta perfecta.
           </p>
-          {/* <div className="text-left gap-2 mt-4 grid grid-cols-1 md:flex items-center ">
-            <InfoCard text="1. Datos del pedido" />
-            <InfoCard text="2. Diseño y entrega" />
-            <InfoCard text="3. Revisión final" /> */}
-          {/* </div> */}
         </div>
 
-        <div className="bg-white rounded-xl border border-border-subtle p-4">
-          <h2 className="text-lg font-semibold text-text-primary">
-            Datos de Contacto
+        {/* Cake details */}
+        <div className="bg-white rounded-2xl border border-border-card p-6 space-y-5">
+          <h2 className="font-display text-lg font-bold text-text-heading">
+            Detalles de la torta
           </h2>
-          <div className=" mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input label="Nombre completo" helperText="Ana Perez" />
-            <Input
-              label="Correo electrónico"
-              helperText="ana.perez@example.com"
-            />
-            <Input
-              label="Fecha de Entrega"
-              helperText="2023-10-15"
-              type="date"
-            />
-            <Input label="Hora de Entrega" helperText="14:00" type="time" />
-          </div>
-        </div>
 
-        <div className="bg-white rounded-xl border border-border-subtle p-4">
-          <h2 className="text-lg font-semibold text-text-primary">
-            Detalles de la Torta
-          </h2>
-          <div className="mt-2 grid grid-cols-1">
-            <label className="font-medium text-sm text-text-primary mt-2 mb-1">
-              Cantidad de personas
-            </label>
+          <div>
+            <p className="font-mono text-sm text-text-muted mb-2">Cantidad de personas</p>
             <ChipSelector
-              options={[
-                { label: "Mini (2 personas)", value: "1" },
-                { label: "5 personas", value: "2" },
-                { label: "10 personas", value: "3" },
-                { label: "20 personas", value: "4" },
-                { label: "30 personas", value: "5" },
-              ]}
+              options={SERVINGS_OPTIONS}
               multi={false}
-              value={quantity}
-              onChange={(val) => setQuantity(val)}
-            />{" "}
-            <label className="font-medium text-sm text-text-primary mt-2 mb-1">
-              Sabor de masa
-            </label>
+              value={servings}
+              onChange={setServings}
+            />
+          </div>
+
+          <div>
+            <p className="font-mono text-sm text-text-muted mb-2">Sabor de masa</p>
             <ChipSelector
-              options={[
-                { label: "Vainilla", value: "1" },
-                { label: "Chocolate", value: "2" },
-                { label: "Red Velvet", value: "3" },
-                { label: "Zanahoria", value: "4" },
-                { label: "Limón", value: "5" },
-              ]}
+              options={FLAVOR_OPTIONS}
               multi={false}
               value={flavor}
-              onChange={(val) => setFlavor(val)}
+              onChange={setFlavor}
             />
-            <label className="font-medium text-sm text-text-primary mt-2 mb-1">
-              Relleno
-            </label>
+          </div>
+
+          <div>
+            <p className="font-mono text-sm text-text-muted mb-2">Relleno</p>
             <ChipSelector
-              options={[
-                { label: "Chocolate", value: "1" },
-                { label: "Brigadeiro", value: "2" },
-                { label: "Manjar", value: "3" },
-                { label: "Crema pastelera", value: "4" },
-                { label: "Queso crema", value: "5" },
-              ]}
+              options={FILLING_OPTIONS}
               multi={false}
               value={filling}
-              onChange={(val) => setFilling(val)}
+              onChange={setFilling}
             />
-            <label className="font-medium text-sm text-text-primary mt-2 mb-1">
-              Tipo de cobertura
-            </label>
+          </div>
+
+          <div>
+            <p className="font-mono text-sm text-text-muted mb-2">Cobertura</p>
             <ChipSelector
-              options={[
-                { label: "Sin cobertura", value: "1" },
-                { label: "Chocolate", value: "2" },
-                { label: "Queso crema", value: "3" },
-              ]}
+              options={FROSTING_OPTIONS}
               multi={false}
-              value={cover}
-              onChange={(val) => setCover(val)}
+              value={frosting}
+              onChange={setFrosting}
             />
-            <div className="space-y-1.5 mt-2">
-              <label className="font-medium text-sm text-text-primary mt-2 mb-1">
-                Diseño personalizado
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setDesignImage(e.target.files?.[0] ?? null)}
-                className="w-full rounded-lg border border-border-subtle bg-background3 p-2 mt-1 focus:outline-none focus:ring-2 focus:ring-accent-soft focus:border-transparent file:mr-3 file:rounded-lg file:border-0 file:bg-rose-100 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-rose-600 transition hover:file:bg-rose-200"
-              />
-              {designImage && (
-                <p className="text-xs text-stone-500">
-                  Archivo:{" "}
-                  <span className="font-semibold text-rose-500">
-                    {designImage.name}
-                  </span>
-                </p>
+          </div>
+
+          <div>
+            <p className="font-mono text-sm text-text-muted mb-2">Mensaje en la torta (opcional)</p>
+            <input
+              type="text"
+              maxLength={120}
+              value={messageOnCake}
+              onChange={(e) => setMessageOnCake(e.target.value)}
+              placeholder='Ej: "Feliz cumpleaños, Ana!"'
+              className="w-full rounded-xl border border-border-card bg-background5 px-4 py-2.5 font-mono text-sm text-text-heading placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <p className="mt-1 text-right font-mono text-xs text-text-muted">{messageOnCake.length}/120</p>
+          </div>
+
+          <div>
+            <p className="font-mono text-sm text-text-muted mb-2">Imagen de diseño (opcional)</p>
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className="cursor-pointer rounded-xl border-2 border-dashed border-border-card p-4 text-center hover:border-primary transition-colors"
+            >
+              {imagePreview ? (
+                <img
+                  src={imagePreview}
+                  alt="Vista previa"
+                  className="mx-auto max-h-40 rounded-lg object-contain"
+                />
+              ) : (
+                <div className="py-4">
+                  <p className="font-mono text-sm text-text-muted">Haz clic para subir una imagen de referencia</p>
+                  <p className="font-mono text-xs text-text-muted mt-1">JPG, PNG, WebP — máx. 10 MB</p>
+                </div>
               )}
             </div>
-            <Input
-              label="Texto en la torta (opcional)"
-              helperText="Ej: Feliz cumpleaños, Ana!"
-              type="text"
-              className="mt-3"
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="hidden"
             />
-            <Input
-              label="Observaciones adicionales (opcional)"
-              helperText="Ej: Cumpleaños de 30 años"
-              type="text"
-              className="mt-3"
+            {imageFile && (
+              <div className="mt-2 flex items-center justify-between">
+                <p className="font-mono text-xs text-text-muted">{imageFile.name}</p>
+                <button
+                  type="button"
+                  onClick={() => { setImageFile(null); setImagePreview(null); }}
+                  className="font-mono text-xs text-secondary hover:underline"
+                >
+                  Quitar
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <p className="font-mono text-sm text-text-muted mb-2">Observaciones adicionales (opcional)</p>
+            <textarea
+              value={designNotes}
+              onChange={(e) => setDesignNotes(e.target.value)}
+              placeholder="Ej: Flores rosas, decoración minimalista..."
+              rows={3}
+              className="w-full rounded-xl border border-border-card bg-background5 px-4 py-2.5 font-mono text-sm text-text-heading placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary resize-none"
             />
           </div>
         </div>
-      </section>
 
-      {/* <ProductsList onAddToCart={addToCart} /> */}
+        {/* Actions */}
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="app-button-ghost flex-1"
+          >
+            ← Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            className="app-button flex-2"
+            style={{ flex: 2 }}
+          >
+            {isEditing ? "Actualizar torta" : "Agregar al carrito"} →
+          </button>
+        </div>
+
+      </div>
     </div>
   );
 }

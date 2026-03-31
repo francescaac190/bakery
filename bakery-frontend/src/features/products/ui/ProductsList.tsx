@@ -2,15 +2,14 @@ import { useNavigate } from "react-router-dom";
 import { useProducts } from "../hooks";
 import type { Product } from "../types";
 import productPlaceholder from "../../../assets/product-placeholder.svg";
-import { AppButton } from "../../../components/ui/AppButton";
 
-type ProductsListProps = {
-  onAddToCart: (product: Product) => void;
-};
-
-export function ProductsList({ onAddToCart }: ProductsListProps) {
+export function ProductsList() {
   const { status, data, error, isLoading, isError, isSuccess } = useProducts();
   const navigate = useNavigate();
+
+  function handleCardClick(product: Product) {
+    navigate(`/products/${product.id}`, { state: { product } });
+  }
 
   if (status === "idle" || isLoading)
     return (
@@ -40,73 +39,68 @@ export function ProductsList({ onAddToCart }: ProductsListProps) {
     );
 
   return (
-    <div className="bg-background3 rounded-2xl p-8 mb-4 space-y-4">
-      <ul className="flex flex-col gap-4">
-        {data.map((product) => (
-          <li
-            key={product.id}
-            onClick={() =>
-              navigate(`/products/${product.id}`, { state: { product } })
-            }
-            className="group flex gap-5 overflow-hidden rounded-2xl border border-transparent bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-rose-50 hover:shadow-md cursor-pointer"
+    <ul className="flex flex-col gap-3 px-4 pb-4 sm:gap-4">
+      {data.map((product) => (
+        <li key={product.id}>
+          <button
+            type="button"
+            onClick={() => handleCardClick(product)}
+            className="group w-full flex gap-3 sm:gap-5 overflow-hidden rounded-2xl border border-transparent bg-white p-3 sm:p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-rose-50 hover:shadow-md text-left"
           >
-            <div className="flex flex-col">
-              <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-xl bg-rose-50">
-                <img
-                  src={product.imageUrl || productPlaceholder}
-                  alt={product.name}
-                  loading="lazy"
-                  onError={(event) => {
-                    event.currentTarget.src = productPlaceholder;
-                  }}
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-              </div>
+            {/* Image */}
+            <div className="relative h-24 w-24 sm:h-36 sm:w-36 flex-shrink-0 overflow-hidden rounded-xl bg-rose-50">
+              <img
+                src={product.imageUrl || productPlaceholder}
+                alt={product.name}
+                loading="lazy"
+                onError={(event) => {
+                  event.currentTarget.src = productPlaceholder;
+                }}
+                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+              />
               {product.isCustom && (
-                <span className="rounded-full bg-secondary px-2 py-0.5 mt-1 text-xs font-semibold text-white shadow-sm">
-                  Personalizable
+                <span className="absolute left-1.5 top-1.5 rounded-full bg-rose-500 px-2 py-0.5 text-xs font-semibold text-white shadow-sm">
+                  ✦
                 </span>
               )}
             </div>
 
-            <div className="flex flex-1 items-center justify-between gap-4">
-              <div className="flex flex-col gap-1.5">
-                <h2 className="font-display text-md font-mono leading-tight text-stone-800">
-                  {product.name}
-                </h2>
-                {product.description && (
-                  <p className="line-clamp-2 text-sm font-mono leading-relaxed text-stone-400">
-                    {product.description}
-                  </p>
+            {/* Content */}
+            <div className="flex flex-col flex-1 min-w-0 justify-center gap-1 sm:gap-1.5">
+              <span className="text-xs font-semibold uppercase tracking-widest text-rose-300">
+                {product.categoryName}
+              </span>
+              <h2 className="font-display text-base sm:text-xl font-semibold leading-tight text-stone-800">
+                {product.name}
+              </h2>
+              {product.description && (
+                <p className="line-clamp-2 text-xs sm:text-sm leading-relaxed text-stone-400">
+                  {product.description}
+                </p>
+              )}
+              <div className="mt-0.5">
+                {product.isCustom ? (
+                  <span className="inline-flex items-center rounded-full border border-border-card bg-background5 px-2.5 py-0.5 text-xs font-semibold text-secondary">
+                    precio a consultar
+                  </span>
+                ) : (
+                  <div className="inline-flex items-baseline gap-0.5 self-start rounded-full bg-rose-50 px-2.5 py-0.5 sm:px-3 sm:py-1">
+                    <span className="text-xs font-semibold text-rose-400">{product.currency}.</span>
+                    <span className="text-base sm:text-lg font-bold text-rose-600">
+                      {(product.priceCents / 100).toFixed(2)}
+                    </span>
+                  </div>
                 )}
-                <div className="inline-flex items-baseline gap-0.5 self-start">
-                  <span className="text-xs font-semibold text-secondary">
-                    {product.currency}.
-                  </span>
-                  <span className="text-md font-bold text-secondary">
-                    {(product.priceCents / 100).toFixed(2)}
-                  </span>
-                </div>
-              </div>
-
-              <div
-                className="flex-shrink-0"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <AppButton
-                  onClick={
-                    product.isCustom
-                      ? () => navigate("/personaliza", { state: { product } })
-                      : () => onAddToCart(product)
-                  }
-                >
-                  {product.isCustom ? "✦ Personalizar" : "+ Agregar"}
-                </AppButton>
               </div>
             </div>
-          </li>
-        ))}
-      </ul>
-    </div>
+
+            {/* Arrow hint */}
+            <div className="flex-shrink-0 flex items-center self-center">
+              <span className="text-border-subtle transition-colors group-hover:text-primary">›</span>
+            </div>
+          </button>
+        </li>
+      ))}
+    </ul>
   );
 }

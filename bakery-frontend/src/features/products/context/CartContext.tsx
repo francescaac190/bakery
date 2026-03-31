@@ -6,18 +6,38 @@ export type CartItem = {
   quantity: number;
 };
 
+export type CustomCakeDetails = {
+  productId: string; // frontend reference only — not sent to backend
+  productName: string; // display name
+  servings: string | null; // e.g. "Mini (2 personas)"
+  flavor: string | null; // e.g. "Red Velvet"
+  filling: string | null; // e.g. "Manjar"
+  frosting: string | null; // e.g. "Queso crema"
+  messageOnCake: string;
+  designNotes: string;
+  inspirationImageFile: File | null;
+  inspirationImagePreview: string | null; // object URL for preview
+};
+
 type CartContextValue = {
   cartItems: CartItem[];
+  customCake: CustomCakeDetails | null;
   addToCart: (product: Product) => void;
   increment: (productId: string) => void;
   decrement: (productId: string) => void;
   remove: (productId: string) => void;
+  setCustomCake: (details: CustomCakeDetails) => void;
+  removeCustomCake: () => void;
+  clearCart: () => void;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [customCake, setCustomCakeState] = useState<CustomCakeDetails | null>(
+    null,
+  );
 
   const addToCart = (product: Product) =>
     setCartItems((prev) => {
@@ -57,8 +77,43 @@ export function CartProvider({ children }: { children: ReactNode }) {
       prev.filter((item) => item.product.id !== productId),
     );
 
+  const setCustomCake = (details: CustomCakeDetails) =>
+    setCustomCakeState(details);
+
+  const removeCustomCake = () => {
+    setCustomCakeState((prev) => {
+      // Revoke object URL to avoid memory leak
+      if (prev?.inspirationImagePreview) {
+        URL.revokeObjectURL(prev.inspirationImagePreview);
+      }
+      return null;
+    });
+  };
+
+  const clearCart = () => {
+    setCartItems([]);
+    setCustomCakeState((prev) => {
+      if (prev?.inspirationImagePreview) {
+        URL.revokeObjectURL(prev.inspirationImagePreview);
+      }
+      return null;
+    });
+  };
+
   return (
-    <CartContext.Provider value={{ cartItems, addToCart, increment, decrement, remove }}>
+    <CartContext.Provider
+      value={{
+        cartItems,
+        customCake,
+        addToCart,
+        increment,
+        decrement,
+        remove,
+        setCustomCake,
+        removeCustomCake,
+        clearCart,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );

@@ -10,6 +10,7 @@ export default {
         background2: appTheme.colors.background2,
         background3: appTheme.colors.background3,
         background4: appTheme.colors.background4,
+        background5: appTheme.colors.background5,
         primary: appTheme.colors.primary,
         secondary: appTheme.colors.secondary,
 
@@ -22,6 +23,7 @@ export default {
           primary: appTheme.colors.text.primary,
           secondary: appTheme.colors.text.secondary,
           muted: appTheme.colors.text.muted,
+          heading: appTheme.colors.text.heading,
         },
 
         accent: {
@@ -36,10 +38,12 @@ export default {
 
         border: {
           subtle: appTheme.colors.border.subtle,
+          card: appTheme.colors.border.card,
         },
       },
 
       fontFamily: {
+        display: ["Playfair Display", "serif"],
         heading: [appTheme.fonts.heading],
         body: [appTheme.fonts.body],
         mono: [appTheme.fonts.mono],

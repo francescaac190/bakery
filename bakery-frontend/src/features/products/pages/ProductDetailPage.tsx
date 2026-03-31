@@ -1,82 +1,51 @@
-import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import type { Product } from "../types";
-import { fetchProducts } from "../api";
 import { useCart } from "../context/CartContext";
 import productPlaceholder from "../../../assets/product-placeholder.svg";
-import { AppButton } from "../../../components/ui/AppButton";
+
+const FLAVOR_OPTIONS = ["Vainilla", "Chocolate", "Red Velvet", "Zanahoria", "Limón"];
+const FILLING_OPTIONS = ["Chocolate", "Brigadeiro", "Manjar", "Crema pastelera", "Queso crema"];
+const FROSTING_OPTIONS = ["Sin cobertura", "Chocolate", "Queso crema"];
+const SERVINGS_OPTIONS = ["Mini (2 personas)", "5 personas", "10 personas", "20 personas", "30 personas"];
 
 export function ProductDetailPage() {
-  const { id } = useParams<{ id: string }>();
-  const { state } = useLocation() as { state: { product?: Product } | null };
+  const { state } = useLocation() as { state?: { product?: Product } };
   const navigate = useNavigate();
   const { addToCart } = useCart();
 
-  const [product, setProduct] = useState<Product | null>(state?.product ?? null);
-  const [loading, setLoading] = useState(!state?.product);
-  const [error, setError] = useState<string | null>(null);
+  const product = state?.product;
 
   useEffect(() => {
-    if (product) return;
-    fetchProducts()
-      .then((all) => {
-        const found = all.find((p) => p.id === id);
-        if (!found) setError("Producto no encontrado");
-        else setProduct(found);
-      })
-      .catch(() => setError("Error al cargar el producto"))
-      .finally(() => setLoading(false));
-  }, [id, product]);
+    if (!product) navigate("/", { replace: true });
+  }, [product, navigate]);
 
-  if (loading)
-    return (
-      <div className="flex flex-col items-center gap-4 py-24 text-rose-300">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-rose-100 border-t-rose-400" />
-        <p className="text-sm font-medium">Cargando producto...</p>
-      </div>
-    );
+  if (!product) return null;
 
-  if (error || !product)
-    return (
-      <div className="mx-auto max-w-sm rounded-2xl bg-red-50 p-10 text-center">
-        <p className="text-3xl">😕</p>
-        <p className="mt-3 font-semibold text-red-500">{error ?? "Producto no encontrado"}</p>
-        <button
-          type="button"
-          onClick={() => navigate("/")}
-          className="mt-4 text-sm text-rose-400 underline"
-        >
-          Volver al menú
-        </button>
-      </div>
-    );
+  function handleAddToCart() {
+    addToCart(product!);
+    navigate(-1);
+  }
+
+  function handlePersonalize() {
+    navigate("/personaliza", { state: { product } });
+  }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      {/* Back button */}
-      <button
-        type="button"
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-1.5 text-sm text-text-muted hover:text-text-primary transition-colors mb-6 group"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          className="w-4 h-4 transition-transform group-hover:-translate-x-0.5"
-        >
-          <path
-            fillRule="evenodd"
-            d="M17 10a.75.75 0 0 1-.75.75H5.612l4.158 3.96a.75.75 0 1 1-1.04 1.08l-5.5-5.25a.75.75 0 0 1 0-1.08l5.5-5.25a.75.75 0 1 1 1.04 1.08L5.612 9.25H16.25A.75.75 0 0 1 17 10Z"
-            clipRule="evenodd"
-          />
-        </svg>
-        Volver al menú
-      </button>
+    <div className="min-h-screen bg-background5">
+      <div className="mx-auto max-w-lg px-4 py-6 space-y-4">
 
-      <div className="bg-background3 rounded-2xl overflow-hidden border border-border-subtle shadow-sm">
-        {/* Product image */}
-        <div className="relative h-64 w-full bg-rose-50 overflow-hidden">
+        {/* Back */}
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="font-mono text-sm font-semibold text-text-primary hover:underline"
+        >
+          ← Volver al menú
+        </button>
+
+        {/* Hero image */}
+        <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-rose-50">
           <img
             src={product.imageUrl || productPlaceholder}
             alt={product.name}
@@ -84,49 +53,120 @@ export function ProductDetailPage() {
             className="h-full w-full object-cover"
           />
           {product.isCustom && (
-            <span className="absolute top-4 left-4 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-white shadow">
+            <span className="absolute left-4 top-4 rounded-full bg-rose-500 px-3 py-1 text-sm font-semibold text-white shadow">
               Personalizable
             </span>
           )}
         </div>
 
-        {/* Content */}
-        <div className="p-8 flex flex-col gap-6">
-          {/* Category */}
-          <span className="text-xs font-semibold uppercase tracking-widest text-text-muted">
+        {/* Info card */}
+        <div className="bg-white rounded-2xl border border-border-card p-6">
+          <span className="text-xs font-semibold uppercase tracking-widest text-rose-300">
             {product.categoryName}
           </span>
+          <h1 className="font-display mt-1 text-2xl font-bold text-text-heading">
+            {product.name}
+          </h1>
 
-          {/* Name & description */}
-          <div className="flex flex-col gap-2">
-            <h1 className="text-3xl font-heading font-bold text-text-primary leading-tight">
-              {product.name}
-            </h1>
-            {product.description && (
-              <p className="text-base text-text-secondary leading-relaxed">
-                {product.description}
-              </p>
+          {product.description && (
+            <p className="mt-3 font-mono text-sm leading-relaxed text-text-muted">
+              {product.description}
+            </p>
+          )}
+
+          <div className="mt-4">
+            {product.isCustom ? (
+              <span className="inline-flex items-center rounded-full border border-border-card bg-background5 px-3 py-1 font-mono text-sm font-semibold text-secondary">
+                precio a consultar
+              </span>
+            ) : (
+              <div className="inline-flex items-baseline gap-0.5 rounded-full bg-rose-50 px-4 py-1.5">
+                <span className="text-sm font-semibold text-rose-400">{product.currency}.</span>
+                <span className="text-2xl font-bold text-rose-600">
+                  {(product.priceCents / 100).toFixed(2)}
+                </span>
+              </div>
             )}
           </div>
-
-          {/* Price & CTA */}
-          <div className="flex items-center justify-between pt-4 border-t border-border-subtle">
-            <div className="flex items-baseline gap-1">
-              <span className="text-sm font-semibold text-primary">{product.currency}.</span>
-              <span className="text-3xl font-bold text-primary">
-                {(product.priceCents / 100).toFixed(2)}
-              </span>
-            </div>
-            <AppButton
-              onClick={() => {
-                addToCart(product);
-                navigate("/");
-              }}
-            >
-              + Agregar al carrito
-            </AppButton>
-          </div>
         </div>
+
+        {/* Customization options (custom cakes only) */}
+        {product.isCustom && (
+          <div className="bg-white rounded-2xl border border-border-card p-6 space-y-4">
+            <h2 className="font-display text-lg font-bold text-text-heading">
+              Qué puedes personalizar
+            </h2>
+
+            <div>
+              <p className="mb-2 font-mono text-xs font-semibold uppercase tracking-widest text-text-muted">
+                Porciones
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {SERVINGS_OPTIONS.map((opt) => (
+                  <span key={opt} className="rounded-full border border-border-card bg-background5 px-3 py-1 font-mono text-xs text-text-secondary">
+                    {opt}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-2 font-mono text-xs font-semibold uppercase tracking-widest text-text-muted">
+                Sabor de masa
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {FLAVOR_OPTIONS.map((opt) => (
+                  <span key={opt} className="rounded-full border border-border-card bg-background5 px-3 py-1 font-mono text-xs text-text-secondary">
+                    {opt}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-2 font-mono text-xs font-semibold uppercase tracking-widest text-text-muted">
+                Relleno
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {FILLING_OPTIONS.map((opt) => (
+                  <span key={opt} className="rounded-full border border-border-card bg-background5 px-3 py-1 font-mono text-xs text-text-secondary">
+                    {opt}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-2 font-mono text-xs font-semibold uppercase tracking-widest text-text-muted">
+                Cobertura
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {FROSTING_OPTIONS.map((opt) => (
+                  <span key={opt} className="rounded-full border border-border-card bg-background5 px-3 py-1 font-mono text-xs text-text-secondary">
+                    {opt}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-border-card bg-background5 px-4 py-3">
+              <p className="font-mono text-xs text-text-muted">
+                También puedes incluir un <span className="font-semibold text-text-secondary">mensaje personalizado</span> y subir una{" "}
+                <span className="font-semibold text-text-secondary">imagen de referencia</span> para el diseño.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* CTA */}
+        <button
+          type="button"
+          onClick={product.isCustom ? handlePersonalize : handleAddToCart}
+          className="app-button w-full"
+        >
+          {product.isCustom ? "✦ Personalizar tu torta →" : "+ Agregar al carrito"}
+        </button>
+
       </div>
     </div>
   );

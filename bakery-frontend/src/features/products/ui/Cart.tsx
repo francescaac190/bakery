@@ -1,19 +1,8 @@
 import { useState } from "react";
-import type { Product } from "../types";
-import { AppButton } from "../../../components/ui/AppButton";
+import { useNavigate } from "react-router-dom";
+import type { CartItem } from "../context/CartContext";
+import type { CustomCakeDetails } from "../context/CartContext";
 import productPlaceholder from "../../../assets/product-placeholder.svg";
-
-export type CartItem = {
-  product: Product;
-  quantity: number;
-};
-
-type CartProps = {
-  items: CartItem[];
-  onIncrement: (productId: string) => void;
-  onDecrement: (productId: string) => void;
-  onRemove: (productId: string) => void;
-};
 
 function CartIcon({ className }: { className?: string }) {
   return (
@@ -34,27 +23,52 @@ function CartIcon({ className }: { className?: string }) {
   );
 }
 
-export function Cart({ items, onIncrement, onDecrement, onRemove }: CartProps) {
+type CartProps = {
+  items: CartItem[];
+  customCake: CustomCakeDetails | null;
+  onIncrement: (productId: string) => void;
+  onDecrement: (productId: string) => void;
+  onRemove: (productId: string) => void;
+  onEditCustomCake: () => void;
+  onRemoveCustomCake: () => void;
+};
+
+export function Cart({
+  items,
+  customCake,
+  onIncrement,
+  onDecrement,
+  onRemove,
+  onEditCustomCake,
+  onRemoveCustomCake,
+}: CartProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
 
   const total = items.reduce(
     (sum, item) => sum + item.product.priceCents * item.quantity,
     0,
   );
   const currency = items[0]?.product.currency ?? "BOB";
-  const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
+  const totalItems = items.reduce((sum, i) => sum + i.quantity, 0) + (customCake ? 1 : 0);
+  const isEmpty = items.length === 0 && customCake === null;
+
+  function handleCheckout() {
+    setIsOpen(false);
+    navigate("/pedido");
+  }
 
   return (
     <div className="relative">
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="relative flex h-11 w-11 items-center justify-center rounded-full border border-rose-100 bg-white shadow-md transition-all hover:scale-105 hover:shadow-lg"
+        className="relative flex h-11 w-11 items-center justify-center rounded-full border border-border-card bg-white shadow-md transition-all hover:scale-105 hover:shadow-lg"
         aria-label="Abrir carrito"
       >
         <CartIcon className="h-5 w-5 text-secondary" />
         {totalItems > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white shadow-sm">
+          <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-accent-cta text-xs font-bold text-white shadow-sm">
             {totalItems > 9 ? "9+" : totalItems}
           </span>
         )}
@@ -67,103 +81,165 @@ export function Cart({ items, onIncrement, onDecrement, onRemove }: CartProps) {
             onClick={() => setIsOpen(false)}
           />
 
-          <div className="absolute right-0 top-14 z-20 w-96 overflow-hidden rounded-2xl border border-rose-100 bg-white shadow-2xl">
-            {/* Panel header */}
-            <div className="flex items-center justify-between border-b border-rose-50 px-5 py-4">
-              <h2 className="font-display text-base font-semibold text-stone-800">
+          <div className="fixed bottom-0 left-0 right-0 z-20 overflow-hidden rounded-t-2xl border border-border-card bg-white shadow-2xl sm:absolute sm:bottom-auto sm:left-auto sm:right-0 sm:top-14 sm:w-96 sm:rounded-2xl">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-border-card px-5 py-4">
+              <h2 className="font-display text-base font-bold text-text-heading">
                 Tu carrito
               </h2>
               {totalItems > 0 && (
-                <span className="rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-semibold text-rose-500">
-                  {totalItems} {totalItems === 1 ? "item" : "items"}
+                <span className="rounded-full bg-background5 px-2.5 py-0.5 font-mono text-xs font-semibold text-secondary">
+                  {totalItems} {totalItems === 1 ? "ítem" : "ítems"}
                 </span>
               )}
             </div>
 
-            {items.length === 0 ? (
+            {isEmpty ? (
               <div className="flex flex-col items-center gap-3 py-14 text-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-rose-50">
-                  <CartIcon className="h-7 w-7 text-rose-300" />
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-background5">
+                  <CartIcon className="h-7 w-7 text-border-subtle" />
                 </div>
                 <div>
-                  <p className="font-medium text-stone-600">
+                  <p className="font-mono font-semibold text-text-secondary">
                     Tu carrito está vacío
                   </p>
-                  <p className="mt-0.5 text-xs text-stone-400">
+                  <p className="mt-0.5 font-mono text-xs text-text-muted">
                     Agrega algo delicioso ✨
                   </p>
                 </div>
               </div>
             ) : (
               <>
-                <ul className="max-h-72 divide-y divide-rose-50 overflow-y-auto">
+                <div className="max-h-80 overflow-y-auto divide-y divide-background5">
+                  {/* Regular items */}
                   {items.map(({ product, quantity }) => (
-                    <li
-                      key={product.id}
-                      className="flex items-center gap-3 px-5 py-3"
-                    >
+                    <div key={product.id} className="flex items-center gap-3 px-5 py-3">
                       <img
                         src={product.imageUrl || productPlaceholder}
                         alt={product.name}
-                        onError={(e) => {
-                          e.currentTarget.src = productPlaceholder;
-                        }}
+                        onError={(e) => { e.currentTarget.src = productPlaceholder; }}
                         className="h-12 w-12 flex-shrink-0 rounded-xl object-cover"
                       />
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-stone-700">
+                        <p className="truncate font-mono text-sm font-semibold text-text-heading">
                           {product.name}
                         </p>
-                        <p className="text-xs font-medium text-rose-400">
-                          {currency}. {(product.priceCents / 100).toFixed(2)}{" "}
-                          c/u
+                        <p className="font-mono text-xs text-text-muted">
+                          {currency}. {(product.priceCents / 100).toFixed(2)} c/u
                         </p>
                       </div>
-
                       <div className="flex items-center gap-1.5">
                         <button
                           type="button"
                           onClick={() => onDecrement(product.id)}
-                          className="flex h-6 w-6 items-center justify-center rounded-full border border-stone-200 text-sm font-medium text-stone-500 transition-colors hover:border-rose-300 hover:bg-rose-50 hover:text-rose-500"
+                          className="flex h-6 w-6 items-center justify-center rounded-full border border-border-card font-mono text-sm text-text-muted transition-colors hover:border-primary hover:bg-background5 hover:text-primary"
                           aria-label="Disminuir"
                         >
                           −
                         </button>
-                        <span className="w-5 text-center text-sm font-bold text-stone-700">
+                        <span className="w-5 text-center font-mono text-sm font-bold text-text-heading">
                           {quantity}
                         </span>
                         <button
                           type="button"
                           onClick={() => onIncrement(product.id)}
-                          className="flex h-6 w-6 items-center justify-center rounded-full border border-rose-200 text-sm font-medium text-rose-500 transition-colors hover:bg-rose-50"
+                          className="flex h-6 w-6 items-center justify-center rounded-full border border-border-card font-mono text-sm text-primary transition-colors hover:bg-background5"
                           aria-label="Aumentar"
                         >
                           +
                         </button>
                       </div>
-
                       <button
                         type="button"
                         onClick={() => onRemove(product.id)}
-                        className="ml-1 flex h-6 w-6 items-center justify-center rounded-full text-xs text-stone-300 transition-colors hover:bg-red-50 hover:text-red-400"
+                        className="ml-1 flex h-6 w-6 items-center justify-center rounded-full font-mono text-xs text-text-muted transition-colors hover:bg-red-50 hover:text-red-400"
                         aria-label="Eliminar"
                       >
                         ✕
                       </button>
-                    </li>
+                    </div>
                   ))}
-                </ul>
 
-                <div className="border-t border-rose-50 bg-rose-50/40 px-5 py-4">
-                  <div className="mb-4 flex items-center justify-between">
-                    <span className="text-sm font-medium text-stone-500">
-                      Total
-                    </span>
-                    <span className="font-display text-xl font-bold text-stone-800">
-                      {currency}. {(total / 100).toFixed(2)}
-                    </span>
-                  </div>
-                  <AppButton className="w-full">Realizar pedido</AppButton>
+                  {/* Custom cake row */}
+                  {customCake && (
+                    <div className="px-5 py-3">
+                      <div className="rounded-xl border border-border-card bg-background5 p-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-mono text-sm font-semibold text-text-heading">
+                                🎂 {customCake.productName}
+                              </p>
+                              <span className="rounded-full border border-border-card bg-white px-2 py-0.5 font-mono text-xs text-secondary">
+                                precio a consultar
+                              </span>
+                            </div>
+                            <div className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-0.5">
+                              {customCake.servings && (
+                                <p className="font-mono text-xs text-text-muted">
+                                  <span className="text-text-secondary">Porciones:</span> {customCake.servings}
+                                </p>
+                              )}
+                              {customCake.flavor && (
+                                <p className="font-mono text-xs text-text-muted">
+                                  <span className="text-text-secondary">Sabor:</span> {customCake.flavor}
+                                </p>
+                              )}
+                              {customCake.filling && (
+                                <p className="font-mono text-xs text-text-muted">
+                                  <span className="text-text-secondary">Relleno:</span> {customCake.filling}
+                                </p>
+                              )}
+                              {customCake.frosting && (
+                                <p className="font-mono text-xs text-text-muted">
+                                  <span className="text-text-secondary">Cobertura:</span> {customCake.frosting}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={onRemoveCustomCake}
+                            className="flex-shrink-0 flex h-6 w-6 items-center justify-center rounded-full font-mono text-xs text-text-muted transition-colors hover:bg-red-50 hover:text-red-400"
+                            aria-label="Quitar torta"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => { setIsOpen(false); onEditCustomCake(); }}
+                          className="mt-2 font-mono text-xs text-primary hover:underline"
+                        >
+                          ✏️ Editar detalles
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer */}
+                <div className="border-t border-border-card bg-background5/40 px-5 py-4">
+                  {items.length > 0 && (
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className="font-mono text-sm text-text-muted">Subtotal productos</span>
+                      <span className="font-display text-lg font-bold text-text-heading">
+                        {currency}. {(total / 100).toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+                  {customCake && (
+                    <p className="mb-3 font-mono text-xs text-text-muted">
+                      + torta personalizada a confirmar
+                    </p>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleCheckout}
+                    className="app-button w-full"
+                  >
+                    Realizar pedido →
+                  </button>
                 </div>
               </>
             )}
