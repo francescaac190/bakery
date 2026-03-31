@@ -1,13 +1,25 @@
 import './App.css'
-import { ProductsPage } from './features/products/ui/ProductsPage'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { CartProvider } from './features/products/context/CartContext'
+import { ProductsPage } from './features/products/pages/ProductsPage'
+import PersonalizaPage from './features/products/pages/PersonalizaPage'
+import { ProductDetailPage } from './features/products/pages/ProductDetailPage'
+import { PedidoPage } from './features/pedidos/pages/PedidoPage'
 
 function App() {
   return (
-    <main>
-      <div className="container mx-auto px-4 py-8">
-        <ProductsPage />
-      </div>
-    </main>
+    <BrowserRouter>
+      <CartProvider>
+        <main>
+          <Routes>
+            <Route path="/" element={<ProductsPage />} />
+            <Route path="/products/:id" element={<ProductDetailPage />} />
+            <Route path="/personaliza" element={<PersonalizaPage />} />
+            <Route path="/pedido" element={<PedidoPage />} />
+          </Routes>
+        </main>
+      </CartProvider>
+    </BrowserRouter>
   )
 }
 
