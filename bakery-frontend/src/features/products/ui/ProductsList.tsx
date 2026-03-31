@@ -1,9 +1,8 @@
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useProducts } from "../hooks";
 import type { Product } from "../types";
 import productPlaceholder from "../../../assets/product-placeholder.svg";
 import { AppButton } from "../../../components/ui/AppButton";
-import { Modal } from "../../../components/ui/Modal";
 
 type ProductsListProps = {
   onAddToCart: (product: Product) => void;
@@ -11,15 +10,7 @@ type ProductsListProps = {
 
 export function ProductsList({ onAddToCart }: ProductsListProps) {
   const { status, data, error, isLoading, isError, isSuccess } = useProducts();
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-
-  const closeModal = () => setSelectedProduct(null);
-
-  const confirmAddProduct = () => {
-    if (!selectedProduct) return;
-    onAddToCart(selectedProduct);
-    setSelectedProduct(null);
-  };
+  const navigate = useNavigate();
 
   if (status === "idle" || isLoading)
     return (
@@ -33,7 +24,9 @@ export function ProductsList({ onAddToCart }: ProductsListProps) {
     return (
       <div className="mx-auto max-w-sm rounded-2xl bg-red-50 p-10 text-center">
         <p className="text-3xl">😕</p>
-        <p className="mt-3 font-semibold text-red-500">Error al cargar los productos</p>
+        <p className="mt-3 font-semibold text-red-500">
+          Error al cargar los productos
+        </p>
         <p className="mt-1 text-sm text-red-400">{error}</p>
       </div>
     );
@@ -47,25 +40,30 @@ export function ProductsList({ onAddToCart }: ProductsListProps) {
     );
 
   return (
-    <>
+    <div className="bg-background3 rounded-2xl p-8 mb-4 space-y-4">
       <ul className="flex flex-col gap-4">
         {data.map((product) => (
           <li
             key={product.id}
-            className="group flex gap-5 overflow-hidden rounded-2xl border border-transparent bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-rose-50 hover:shadow-md"
+            onClick={() =>
+              navigate(`/products/${product.id}`, { state: { product } })
+            }
+            className="group flex gap-5 overflow-hidden rounded-2xl border border-transparent bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-rose-50 hover:shadow-md cursor-pointer"
           >
-            <div className="relative h-36 w-36 flex-shrink-0 overflow-hidden rounded-xl bg-rose-50">
-              <img
-                src={product.imageUrl || productPlaceholder}
-                alt={product.name}
-                loading="lazy"
-                onError={(event) => {
-                  event.currentTarget.src = productPlaceholder;
-                }}
-                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
+            <div className="flex flex-col">
+              <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-xl bg-rose-50">
+                <img
+                  src={product.imageUrl || productPlaceholder}
+                  alt={product.name}
+                  loading="lazy"
+                  onError={(event) => {
+                    event.currentTarget.src = productPlaceholder;
+                  }}
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+              </div>
               {product.isCustom && (
-                <span className="absolute left-2 top-2 rounded-full bg-rose-500 px-2 py-0.5 text-xs font-semibold text-white shadow-sm">
+                <span className="rounded-full bg-secondary px-2 py-0.5 mt-1 text-xs font-semibold text-white shadow-sm">
                   Personalizable
                 </span>
               )}
@@ -73,30 +71,32 @@ export function ProductsList({ onAddToCart }: ProductsListProps) {
 
             <div className="flex flex-1 items-center justify-between gap-4">
               <div className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold uppercase tracking-widest text-rose-300">
-                  {product.categoryName}
-                </span>
-                <h2 className="font-display text-xl font-semibold leading-tight text-stone-800">
+                <h2 className="font-display text-md font-mono leading-tight text-stone-800">
                   {product.name}
                 </h2>
                 {product.description && (
-                  <p className="line-clamp-2 text-sm leading-relaxed text-stone-400">
+                  <p className="line-clamp-2 text-sm font-mono leading-relaxed text-stone-400">
                     {product.description}
                   </p>
                 )}
-                <div className="mt-1 inline-flex items-baseline gap-0.5 self-start rounded-full bg-rose-50 px-3 py-1">
-                  <span className="text-xs font-semibold text-rose-400">{product.currency}.</span>
-                  <span className="text-lg font-bold text-rose-600">
+                <div className="inline-flex items-baseline gap-0.5 self-start">
+                  <span className="text-xs font-semibold text-secondary">
+                    {product.currency}.
+                  </span>
+                  <span className="text-md font-bold text-secondary">
                     {(product.priceCents / 100).toFixed(2)}
                   </span>
                 </div>
               </div>
 
-              <div className="flex-shrink-0">
+              <div
+                className="flex-shrink-0"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <AppButton
                   onClick={
                     product.isCustom
-                      ? () => setSelectedProduct(product)
+                      ? () => navigate("/personaliza", { state: { product } })
                       : () => onAddToCart(product)
                   }
                 >
@@ -107,21 +107,6 @@ export function ProductsList({ onAddToCart }: ProductsListProps) {
           </li>
         ))}
       </ul>
-
-      <Modal
-        isOpen={selectedProduct !== null}
-        onClose={closeModal}
-        onConfirm={confirmAddProduct}
-        title="Confirmar pedido"
-        description={
-          selectedProduct
-            ? `Deseas agregar "${selectedProduct.name}" al carrito?`
-            : undefined
-        }
-        showCakeForm={selectedProduct?.isCustom ?? false}
-        confirmText="Agregar"
-        cancelText="Cancelar"
-      />
-    </>
+    </div>
   );
 }

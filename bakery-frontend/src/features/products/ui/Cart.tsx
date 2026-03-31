@@ -52,7 +52,7 @@ export function Cart({ items, onIncrement, onDecrement, onRemove }: CartProps) {
         className="relative flex h-11 w-11 items-center justify-center rounded-full border border-rose-100 bg-white shadow-md transition-all hover:scale-105 hover:shadow-lg"
         aria-label="Abrir carrito"
       >
-        <CartIcon className="h-5 w-5 text-rose-500" />
+        <CartIcon className="h-5 w-5 text-secondary" />
         {totalItems > 0 && (
           <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white shadow-sm">
             {totalItems > 9 ? "9+" : totalItems}
@@ -62,7 +62,10 @@ export function Cart({ items, onIncrement, onDecrement, onRemove }: CartProps) {
 
       {isOpen && (
         <>
-          <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => setIsOpen(false)}
+          />
 
           <div className="absolute right-0 top-14 z-20 w-96 overflow-hidden rounded-2xl border border-rose-100 bg-white shadow-2xl">
             {/* Panel header */}
@@ -83,15 +86,22 @@ export function Cart({ items, onIncrement, onDecrement, onRemove }: CartProps) {
                   <CartIcon className="h-7 w-7 text-rose-300" />
                 </div>
                 <div>
-                  <p className="font-medium text-stone-600">Tu carrito está vacío</p>
-                  <p className="mt-0.5 text-xs text-stone-400">Agrega algo delicioso ✨</p>
+                  <p className="font-medium text-stone-600">
+                    Tu carrito está vacío
+                  </p>
+                  <p className="mt-0.5 text-xs text-stone-400">
+                    Agrega algo delicioso ✨
+                  </p>
                 </div>
               </div>
             ) : (
               <>
                 <ul className="max-h-72 divide-y divide-rose-50 overflow-y-auto">
                   {items.map(({ product, quantity }) => (
-                    <li key={product.id} className="flex items-center gap-3 px-5 py-3">
+                    <li
+                      key={product.id}
+                      className="flex items-center gap-3 px-5 py-3"
+                    >
                       <img
                         src={product.imageUrl || productPlaceholder}
                         alt={product.name}
@@ -105,7 +115,8 @@ export function Cart({ items, onIncrement, onDecrement, onRemove }: CartProps) {
                           {product.name}
                         </p>
                         <p className="text-xs font-medium text-rose-400">
-                          {currency}. {(product.priceCents / 100).toFixed(2)} c/u
+                          {currency}. {(product.priceCents / 100).toFixed(2)}{" "}
+                          c/u
                         </p>
                       </div>
 
@@ -145,7 +156,9 @@ export function Cart({ items, onIncrement, onDecrement, onRemove }: CartProps) {
 
                 <div className="border-t border-rose-50 bg-rose-50/40 px-5 py-4">
                   <div className="mb-4 flex items-center justify-between">
-                    <span className="text-sm font-medium text-stone-500">Total</span>
+                    <span className="text-sm font-medium text-stone-500">
+                      Total
+                    </span>
                     <span className="font-display text-xl font-bold text-stone-800">
                       {currency}. {(total / 100).toFixed(2)}
                     </span>

@@ -1,10 +1,22 @@
-import { useState } from "react";
-import { ProductsList } from "./ProductsList";
-import { Cart, type CartItem } from "./Cart";
+import { createContext, useContext, useState, type ReactNode } from "react";
 import type { Product } from "../types";
-import logo from "../../../assets/logo.jpeg";
 
-export function ProductsPage() {
+export type CartItem = {
+  product: Product;
+  quantity: number;
+};
+
+type CartContextValue = {
+  cartItems: CartItem[];
+  addToCart: (product: Product) => void;
+  increment: (productId: string) => void;
+  decrement: (productId: string) => void;
+  remove: (productId: string) => void;
+};
+
+const CartContext = createContext<CartContextValue | null>(null);
+
+export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
   const addToCart = (product: Product) =>
@@ -46,32 +58,14 @@ export function ProductsPage() {
     );
 
   return (
-    <div>
-      <header className="sticky top-0 z-30 mb-8 flex items-center justify-between rounded-2xl border border-rose-100 bg-white/85 px-6 py-4 shadow-md backdrop-blur-sm">
-        <div className="flex items-center gap-3">
-          <img
-            src={logo}
-            alt="Coco Limón"
-            className="h-12 w-12 rounded-xl object-cover shadow-sm"
-          />
-          <div className="text-left">
-            <p className="font-display text-lg font-semibold leading-tight text-rose-900">
-              Coco Limón
-            </p>
-            <p className="text-xs font-medium tracking-wide text-rose-400">
-              Pastelería artesanal
-            </p>
-          </div>
-        </div>
-        <Cart
-          items={cartItems}
-          onIncrement={increment}
-          onDecrement={decrement}
-          onRemove={remove}
-        />
-      </header>
-
-      <ProductsList onAddToCart={addToCart} />
-    </div>
+    <CartContext.Provider value={{ cartItems, addToCart, increment, decrement, remove }}>
+      {children}
+    </CartContext.Provider>
   );
+}
+
+export function useCart() {
+  const ctx = useContext(CartContext);
+  if (!ctx) throw new Error("useCart must be used within CartProvider");
+  return ctx;
 }

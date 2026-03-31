@@ -1,15 +1,15 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --page-bg: #fff8f5;
-  --page-accent: #e05475;
-  --page-accent-hover: #c73d60;
+  --page-bg: #e8d1d8;
+  --page-accent: #efa3b5;
+  --page-accent-hover: #d96e97;
   --page-accent-light: #fde8ef;
-  --page-focus: rgba(224, 84, 117, 0.3);
+  --page-focus: #4b2e35;
 }
 
 * {
@@ -17,7 +17,11 @@
 }
 
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
   background-color: var(--page-bg);
   color: #2d1b2e;
   -webkit-font-smoothing: antialiased;
@@ -36,10 +40,10 @@ ul {
   padding: 0.65em 1.5em;
   font-size: 0.9rem;
   font-weight: 600;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: "Inter", system-ui, sans-serif;
   line-height: 1.2;
   color: white;
-  background: linear-gradient(135deg, #e8547a 0%, #d03d63 100%);
+  background: var(--page-accent);
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 2px 10px rgba(208, 61, 99, 0.3);
