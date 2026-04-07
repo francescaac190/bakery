@@ -13,6 +13,7 @@ const BASE_URL = `${import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000/
 
 function authHeaders() {
   const token = useAuthStore.getState().token
+  if (!token) throw new Error('Not authenticated')
   return {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${token}`,
