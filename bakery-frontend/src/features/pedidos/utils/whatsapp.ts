@@ -1,9 +1,13 @@
-import type { CartItem, CustomCakeDetails } from "../../products/context/CartContext";
+import type {
+  CartItem,
+  CustomCakeDetails,
+} from "../../products/context/CartContext";
 
 export type DeliveryInfo = {
   fulfillmentType: "PICKUP" | "DELIVERY";
   deliveryAddress?: string;
-  pickupAt?: string;       // ISO string
+  deliveryLocation?: { lat: number; lng: number };
+  pickupAt?: string; // ISO string
   notes?: string;
 };
 
@@ -45,19 +49,25 @@ export function buildWhatsAppMessage({
     lines.push("🛒 *Productos:*");
     for (const { product, quantity } of cartItems) {
       const price = (product.priceCents / 100).toFixed(2);
-      lines.push(`• ${quantity}x ${product.name} — ${product.currency}. ${price}`);
+      lines.push(
+        `• ${quantity}x ${product.name} — ${product.currency}. ${price}`,
+      );
     }
   }
 
   if (customCake) {
     lines.push("");
     lines.push("🎂 *Torta personalizada:* Precio a consultar");
-    if (customCake.servings) lines.push(`  • Porciones: ${customCake.servings}`);
+    if (customCake.servings)
+      lines.push(`  • Porciones: ${customCake.servings}`);
     if (customCake.flavor) lines.push(`  • Sabor: ${customCake.flavor}`);
     if (customCake.filling) lines.push(`  • Relleno: ${customCake.filling}`);
-    if (customCake.frosting) lines.push(`  • Cobertura: ${customCake.frosting}`);
-    if (customCake.messageOnCake) lines.push(`  • Mensaje: "${customCake.messageOnCake}"`);
-    if (customCake.designNotes) lines.push(`  • Notas: "${customCake.designNotes}"`);
+    if (customCake.frosting)
+      lines.push(`  • Cobertura: ${customCake.frosting}`);
+    if (customCake.messageOnCake)
+      lines.push(`  • Mensaje: "${customCake.messageOnCake}"`);
+    if (customCake.designNotes)
+      lines.push(`  • Notas: "${customCake.designNotes}"`);
     const imageUrl = inspirationImageUrl;
     if (imageUrl) lines.push(`  • 🖼️ Imagen de diseño: ${imageUrl}`);
   }
@@ -65,7 +75,14 @@ export function buildWhatsAppMessage({
   lines.push("");
   if (delivery.fulfillmentType === "DELIVERY") {
     lines.push("🚚 *Entrega:* Envío a domicilio");
-    if (delivery.deliveryAddress) lines.push(`📍 *Dirección:* ${delivery.deliveryAddress}`);
+    if (delivery.deliveryAddress)
+      lines.push(`📍 *Dirección:* ${delivery.deliveryAddress}`);
+    if (delivery.deliveryLocation) {
+      const { lat, lng } = delivery.deliveryLocation;
+      lines.push(
+        `🗺️ *Ubicación exacta:* https://maps.google.com/?q=${lat.toFixed(6)},${lng.toFixed(6)}`,
+      );
+    }
   } else {
     lines.push("🏪 *Retiro en tienda*");
     if (delivery.pickupAt) {
@@ -93,7 +110,9 @@ export function buildWhatsAppMessage({
     );
     const currency = cartItems[0].product.currency;
     lines.push("");
-    lines.push(`💰 *Total productos fijos:* ${currency}. ${(total / 100).toFixed(2)}`);
+    lines.push(
+      `💰 *Total productos fijos:* ${currency}. ${(total / 100).toFixed(2)}`,
+    );
     if (customCake) lines.push("   *(+ torta personalizada a confirmar)*");
   }
 
