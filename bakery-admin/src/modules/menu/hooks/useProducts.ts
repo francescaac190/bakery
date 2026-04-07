@@ -7,7 +7,7 @@ export const PRODUCTS_KEY = ['admin', 'products'] as const
 
 export function useProducts(filters: ProductFilters = {}) {
   return useQuery({
-    queryKey: [...PRODUCTS_KEY, filters],
+    queryKey: [...PRODUCTS_KEY, filters.categoryId ?? null, filters.search ?? null],
     queryFn: () => menuApi.getProducts(filters),
   })
 }
@@ -20,7 +20,7 @@ export function useCreateProduct() {
       queryClient.invalidateQueries({ queryKey: PRODUCTS_KEY })
       toast.success('Producto creado')
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (err: Error) => toast.error(err.message ?? 'Ha ocurrido un error'),
   })
 }
 
@@ -33,7 +33,7 @@ export function useUpdateProduct() {
       queryClient.invalidateQueries({ queryKey: PRODUCTS_KEY })
       toast.success('Producto actualizado')
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (err: Error) => toast.error(err.message ?? 'Ha ocurrido un error'),
   })
 }
 
@@ -45,6 +45,6 @@ export function useDeleteProduct() {
       queryClient.invalidateQueries({ queryKey: PRODUCTS_KEY })
       toast.success('Producto eliminado')
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (err: Error) => toast.error(err.message ?? 'Ha ocurrido un error'),
   })
 }

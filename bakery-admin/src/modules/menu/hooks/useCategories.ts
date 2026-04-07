@@ -20,7 +20,7 @@ export function useCreateCategory() {
       queryClient.invalidateQueries({ queryKey: CATEGORIES_KEY })
       toast.success('Categoría creada')
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (err: Error) => toast.error(err.message ?? 'Ha ocurrido un error'),
   })
 }
 
@@ -33,7 +33,7 @@ export function useUpdateCategory() {
       queryClient.invalidateQueries({ queryKey: CATEGORIES_KEY })
       toast.success('Categoría actualizada')
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (err: Error) => toast.error(err.message ?? 'Ha ocurrido un error'),
   })
 }
 
@@ -45,6 +45,6 @@ export function useDeleteCategory() {
       queryClient.invalidateQueries({ queryKey: CATEGORIES_KEY })
       toast.success('Categoría eliminada')
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (err: Error) => toast.error(err.message ?? 'Ha ocurrido un error'),
   })
 }
