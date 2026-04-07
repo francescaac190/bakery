@@ -87,10 +87,15 @@ function ClickToPlace({
   return null;
 }
 
+const NOMINATIM_HEADERS = {
+  "Accept-Language": "es",
+  "User-Agent": "LaBakery/1.0 (labakerybolivia@gmail.com)",
+};
+
 async function reverseGeocode(lat: number, lng: number): Promise<string> {
   const res = await fetch(
     `${NOMINATIM_BASE}/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=es`,
-    { headers: { "Accept-Language": "es" } },
+    { headers: NOMINATIM_HEADERS },
   );
   if (!res.ok) return "";
   const data = await res.json();
@@ -100,7 +105,7 @@ async function reverseGeocode(lat: number, lng: number): Promise<string> {
 async function forwardGeocode(query: string): Promise<LatLng | null> {
   const res = await fetch(
     `${NOMINATIM_BASE}/search?format=jsonv2&q=${encodeURIComponent(query)}&limit=1&accept-language=es`,
-    { headers: { "Accept-Language": "es" } },
+    { headers: NOMINATIM_HEADERS },
   );
   if (!res.ok) return null;
   const data = await res.json();
