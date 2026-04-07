@@ -1,5 +1,7 @@
 import "dotenv/config";
+import bcrypt from "bcrypt";
 import { prisma } from "../db/prisma";
+import { env } from "../config/env";
 
 type SeedProduct = {
   name: string;
@@ -103,7 +105,29 @@ const seedCatalog: SeedCategory[] = [
   },
 ];
 
+async function seedAdmin() {
+  const existing = await prisma.adminUser.findUnique({
+    where: { email: env.seedAdminEmail },
+  });
+  if (existing) {
+    console.log("Admin user already exists, skipping.");
+    return;
+  }
+  const passwordHash = await bcrypt.hash(env.seedAdminPassword, 10);
+  await prisma.adminUser.create({
+    data: {
+      email: env.seedAdminEmail,
+      passwordHash,
+      name: env.seedAdminName,
+      role: "SUPER_ADMIN",
+    },
+  });
+  console.log(`Created SUPER_ADMIN: ${env.seedAdminEmail}`);
+}
+
 async function seed() {
+  await seedAdmin();
+
   for (const category of seedCatalog) {
     const categoryRow = await prisma.category.upsert({
       where: { name: category.name },
