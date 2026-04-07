@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Bakery API",
-    "description": "REST API for the Bakery Ordering System. Base URL: http://localhost:1313/api/v1",
+    "description": "REST API for the Bakery Ordering System. Base URL: http://localhost:1313/api/v1\n\nAdmin routes require a Bearer token. Use the Login request to get a token — it is saved automatically to the `token` variable.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -16,9 +16,21 @@
       "type": "string"
     },
     {
+      "key": "token",
+      "value": "",
+      "description": "JWT token — set automatically by the Login request",
+      "type": "string"
+    },
+    {
       "key": "orderId",
       "value": "",
-      "description": "Set this after creating an order",
+      "description": "Set automatically after creating an order",
+      "type": "string"
+    },
+    {
+      "key": "adminUserId",
+      "value": "",
+      "description": "Set manually after creating an admin user",
       "type": "string"
     }
   ],
@@ -53,22 +65,25 @@
       ]
     },
     {
-      "name": "Menu",
+      "name": "Auth",
       "item": [
         {
-          "name": "Get All Categories",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}{{apiPrefix}}/menu/categories",
-              "host": ["{{baseUrl}}{{apiPrefix}}"],
-              "path": ["menu", "categories"]
-            },
-            "description": "Returns all categories including their active products."
-          }
-        },
-        {
-          "name": "Create Category",
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.token) {",
+                  "  pm.collectionVariables.set('token', res.data.token);",
+                  "  console.log('token saved for role:', res.data.admin.role);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -79,14 +94,31 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Tortas\",\n  \"imageUrl\": \"https://example.com/tortas.jpg\"\n}"
+              "raw": "{\n  \"email\": \"admin@bakery.com\",\n  \"password\": \"changeme123\"\n}"
             },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/auth/login",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Authenticates an admin user. Returns a JWT token valid for 24h. The test script automatically saves the token to the `token` collection variable."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Menu — Public",
+      "item": [
+        {
+          "name": "Get All Categories",
+          "request": {
+            "method": "GET",
             "url": {
               "raw": "{{baseUrl}}{{apiPrefix}}/menu/categories",
               "host": ["{{baseUrl}}{{apiPrefix}}"],
               "path": ["menu", "categories"]
             },
-            "description": "Creates a new category. `name` is required and must be unique. `imageUrl` is optional. Returns 201 with the created category."
+            "description": "Returns all categories including their active products. No auth required."
           }
         },
         {
@@ -98,7 +130,7 @@
               "host": ["{{baseUrl}}{{apiPrefix}}"],
               "path": ["menu", "products"]
             },
-            "description": "Returns all active products. Optionally filter by categoryId or search term."
+            "description": "Returns all active products. No auth required."
           }
         },
         {
@@ -117,7 +149,7 @@
                 }
               ]
             },
-            "description": "Returns products filtered by category."
+            "description": "Returns active products filtered by category."
           }
         },
         {
@@ -136,35 +168,13 @@
                 }
               ]
             },
-            "description": "Returns products matching the search term."
-          }
-        },
-        {
-          "name": "Create Product",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Torta de Chocolate\",\n  \"description\": \"Torta esponjosa de chocolate con cobertura de ganache\",\n  \"priceCents\": 8500,\n  \"currency\": \"BOB\",\n  \"isActive\": true,\n  \"isCustom\": false,\n  \"categoryId\": \"CATEGORY_ID_HERE\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}{{apiPrefix}}/menu/products",
-              "host": ["{{baseUrl}}{{apiPrefix}}"],
-              "path": ["menu", "products"]
-            },
-            "description": "Creates a new product. `priceCents` is required and must be a positive integer (e.g. 8500 = 85.00 BOB). `categoryId` is optional. Returns 201 with the created product including its category."
+            "description": "Returns active products matching the search term."
           }
         }
       ]
     },
     {
-      "name": "Orders",
+      "name": "Orders — Public",
       "item": [
         {
           "name": "Create Order — catalog items",
@@ -293,23 +303,36 @@
     },
     {
       "name": "Admin — Orders",
+      "description": "Requires Bearer token. STAFF can list and update status. SUPER_ADMIN can also delete.",
       "item": [
         {
           "name": "List All Orders",
           "request": {
             "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}{{apiPrefix}}/admin/orders",
               "host": ["{{baseUrl}}{{apiPrefix}}"],
               "path": ["admin", "orders"]
             },
-            "description": "Returns all orders with default pagination."
+            "description": "Returns all orders with default pagination. Accessible by STAFF and SUPER_ADMIN."
           }
         },
         {
           "name": "List Orders — filter by status",
           "request": {
             "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}{{apiPrefix}}/admin/orders?status=PENDING",
               "host": ["{{baseUrl}}{{apiPrefix}}"],
@@ -322,13 +345,19 @@
                 }
               ]
             },
-            "description": "Filters orders by status. Valid values: PENDING, CONFIRMED, IN_PROGRESS, READY, COMPLETED, CANCELLED."
+            "description": "Filters orders by status."
           }
         },
         {
           "name": "List Orders — paginated",
           "request": {
             "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}{{apiPrefix}}/admin/orders?page=1&pageSize=10",
               "host": ["{{baseUrl}}{{apiPrefix}}"],
@@ -351,6 +380,12 @@
           "name": "List Orders — date range",
           "request": {
             "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}{{apiPrefix}}/admin/orders?from=2026-03-01T00:00:00Z&to=2026-03-31T23:59:59Z",
               "host": ["{{baseUrl}}{{apiPrefix}}"],
@@ -377,6 +412,10 @@
             "method": "PATCH",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
               }
@@ -398,6 +437,10 @@
           "request": {
             "method": "PATCH",
             "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
               {
                 "key": "Content-Type",
                 "value": "application/json"
@@ -421,6 +464,10 @@
             "method": "PATCH",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
               }
@@ -442,6 +489,10 @@
           "request": {
             "method": "PATCH",
             "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
               {
                 "key": "Content-Type",
                 "value": "application/json"
@@ -465,6 +516,10 @@
             "method": "PATCH",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
               }
@@ -478,7 +533,301 @@
               "host": ["{{baseUrl}}{{apiPrefix}}"],
               "path": ["admin", "orders", "{{orderId}}", "status"]
             },
-            "description": "Cancels an order. Can be applied at any non-terminal stage (PENDING, CONFIRMED, IN_PROGRESS, READY)."
+            "description": "Cancels an order. Can be applied at any non-terminal stage."
+          }
+        },
+        {
+          "name": "Delete Order",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/admin/orders/{{orderId}}",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["admin", "orders", "{{orderId}}"]
+            },
+            "description": "Hard-deletes an order and its items. SUPER_ADMIN only. Returns 204 No Content."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Menu",
+      "description": "Requires Bearer token. GET routes accessible by STAFF and SUPER_ADMIN. All write operations (POST, PATCH, DELETE) require SUPER_ADMIN.",
+      "item": [
+        {
+          "name": "Get All Products (admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/admin/menu/products",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["admin", "menu", "products"]
+            },
+            "description": "Returns ALL products including inactive ones. Use this in the admin panel instead of the public endpoint."
+          }
+        },
+        {
+          "name": "Get All Categories (admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/admin/menu/categories",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["admin", "menu", "categories"]
+            },
+            "description": "Returns all categories including inactive products. Use this in the admin panel."
+          }
+        },
+        {
+          "name": "Create Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Torta de Chocolate\",\n  \"description\": \"Bizcocho de chocolate con ganache\",\n  \"priceCents\": 12000,\n  \"currency\": \"BOB\",\n  \"isActive\": true,\n  \"isCustom\": false,\n  \"categoryId\": \"CATEGORY_ID_HERE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/admin/menu/products",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["admin", "menu", "products"]
+            },
+            "description": "Creates a new product. SUPER_ADMIN only. Returns 201."
+          }
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Torta de Chocolate Actualizada\",\n  \"priceCents\": 13500,\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/admin/menu/products/PRODUCT_ID_HERE",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["admin", "menu", "products", "PRODUCT_ID_HERE"]
+            },
+            "description": "Partially updates a product. All fields optional. SUPER_ADMIN only."
+          }
+        },
+        {
+          "name": "Delete Product (soft)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/admin/menu/products/PRODUCT_ID_HERE",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["admin", "menu", "products", "PRODUCT_ID_HERE"]
+            },
+            "description": "Soft-deletes a product (sets isActive=false). Order history is preserved. SUPER_ADMIN only. Returns 204."
+          }
+        },
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postres\",\n  \"imageUrl\": \"https://example.com/postres.jpg\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/admin/menu/categories",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["admin", "menu", "categories"]
+            },
+            "description": "Creates a new category. `name` must be unique. SUPER_ADMIN only. Returns 201."
+          }
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postres Especiales\",\n  \"imageUrl\": \"https://example.com/postres-new.jpg\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/admin/menu/categories/CATEGORY_ID_HERE",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["admin", "menu", "categories", "CATEGORY_ID_HERE"]
+            },
+            "description": "Partially updates a category. SUPER_ADMIN only."
+          }
+        },
+        {
+          "name": "Delete Category",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/admin/menu/categories/CATEGORY_ID_HERE",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["admin", "menu", "categories", "CATEGORY_ID_HERE"]
+            },
+            "description": "Hard-deletes a category. Fails with 409 if any products are still assigned to it. SUPER_ADMIN only. Returns 204."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Users",
+      "description": "Manage admin accounts. SUPER_ADMIN only — all endpoints require SUPER_ADMIN role.",
+      "item": [
+        {
+          "name": "List Admin Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/admin/users",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["admin", "users"]
+            },
+            "description": "Returns all admin users (passwordHash is never returned). SUPER_ADMIN only."
+          }
+        },
+        {
+          "name": "Create Admin User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"staff@bakery.com\",\n  \"password\": \"securepass1\",\n  \"name\": \"Staff User\",\n  \"role\": \"STAFF\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/admin/users",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["admin", "users"]
+            },
+            "description": "Creates a new admin user. `role` is STAFF or SUPER_ADMIN (defaults to STAFF). Password minimum 8 characters. Returns 201."
+          }
+        },
+        {
+          "name": "Update Admin User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Name\",\n  \"role\": \"SUPER_ADMIN\",\n  \"isActive\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/admin/users/{{adminUserId}}",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["admin", "users", "{{adminUserId}}"]
+            },
+            "description": "Updates name, role, or isActive status of an admin user. All fields optional. SUPER_ADMIN only."
+          }
+        },
+        {
+          "name": "Delete Admin User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/admin/users/{{adminUserId}}",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["admin", "users", "{{adminUserId}}"]
+            },
+            "description": "Hard-deletes an admin user. Cannot delete your own account. SUPER_ADMIN only. Returns 204."
           }
         }
       ]
