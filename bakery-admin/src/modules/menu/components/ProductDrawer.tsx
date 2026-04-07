@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
+import { toast } from 'react-hot-toast'
 import { Button } from '@/components/ui/Button'
 import { useCategories } from '../hooks/useCategories'
 import { useCreateProduct, useUpdateProduct } from '../hooks/useProducts'
@@ -49,15 +50,18 @@ export function ProductDrawer({ mode, product, onClose }: Props) {
   }, [mode, product])
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape' && !isPending) onClose() }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [onClose])
+  }, [onClose, isPending])
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const priceCents = Math.round(parseFloat(price) * 100)
-    if (isNaN(priceCents) || priceCents <= 0) return
+    const priceCents = Math.round((parseFloat(price) + Number.EPSILON) * 100)
+    if (isNaN(priceCents) || priceCents <= 0) {
+      toast.error('El precio debe ser mayor a cero')
+      return
+    }
 
     if (mode === 'create') {
       const input: CreateProductInput = {
@@ -88,7 +92,7 @@ export function ProductDrawer({ mode, product, onClose }: Props) {
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/20 z-40" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/20 z-40" onClick={() => !isPending && onClose()} />
 
       <div className="fixed inset-y-0 right-0 w-96 bg-surface border-l-2 border-border-subtle shadow-2xl z-50 flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle">
@@ -98,6 +102,7 @@ export function ProductDrawer({ mode, product, onClose }: Props) {
           <button
             type="button"
             onClick={onClose}
+            aria-label="Cerrar"
             className="text-text-muted hover:text-text transition-colors"
           >
             <X size={18} />
