@@ -107,7 +107,7 @@ export function CategoryDrawer({ mode, category, onClose }: Props) {
             <Button type="submit" disabled={isPending} className="w-full justify-center">
               {isPending ? 'Guardando...' : mode === 'create' ? 'Crear categoría' : 'Guardar cambios'}
             </Button>
-            <Button type="button" variant="secondary" onClick={onClose} className="w-full justify-center">
+            <Button type="button" variant="secondary" onClick={onClose} disabled={isPending} className="w-full justify-center">
               Cancelar
             </Button>
           </div>

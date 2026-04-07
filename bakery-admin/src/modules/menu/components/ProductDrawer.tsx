@@ -57,7 +57,7 @@ export function ProductDrawer({ mode, product, onClose }: Props) {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const priceCents = Math.round((parseFloat(price) + Number.EPSILON) * 100)
+    const priceCents = Math.round(parseFloat(price) * 100 + Number.EPSILON)
     if (isNaN(priceCents) || priceCents <= 0) {
       toast.error('El precio debe ser mayor a cero')
       return
@@ -233,7 +233,7 @@ export function ProductDrawer({ mode, product, onClose }: Props) {
             <Button type="submit" disabled={isPending} className="w-full justify-center">
               {isPending ? 'Guardando...' : mode === 'create' ? 'Crear producto' : 'Guardar cambios'}
             </Button>
-            <Button type="button" variant="secondary" onClick={onClose} className="w-full justify-center">
+            <Button type="button" variant="secondary" onClick={onClose} disabled={isPending} className="w-full justify-center">
               Cancelar
             </Button>
           </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Pencil, Trash2, Plus, Search } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useAuthStore } from '@/modules/auth/store/auth.store'
@@ -17,9 +17,17 @@ export function ProductsTab() {
   const [categoryId, setCategoryId] = useState('')
   const [drawerMode, setDrawerMode] = useState<DrawerMode>(null)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300)
+    return () => clearTimeout(timer)
+  }, [search])
 
   const { data: products, isLoading, error } = useProducts({
-    search: search || undefined,
+    search: debouncedSearch || undefined,
     categoryId: categoryId || undefined,
   })
   const { data: categories } = useCategories()
@@ -41,8 +49,11 @@ export function ProductsTab() {
   }
 
   function handleDelete(product: Product) {
-    if (!window.confirm(`¿Eliminar el producto "${product.name}"?`)) return
-    deleteProduct.mutate(product.id)
+    if (!window.confirm(`¿Eliminar el producto "${product.name}"? Esta acción no se puede deshacer.`)) return
+    setDeletingId(product.id)
+    deleteProduct.mutate(product.id, {
+      onSettled: () => setDeletingId(null),
+    })
   }
 
   if (isLoading) {
@@ -145,14 +156,15 @@ export function ProductsTab() {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => openEdit(product)}
-                          className="p-1.5 text-text-muted hover:text-primary rounded transition-colors"
+                          disabled={deletingId === product.id}
+                          className="p-1.5 text-text-muted hover:text-primary rounded transition-colors disabled:opacity-50"
                           title="Editar"
                         >
                           <Pencil size={14} />
                         </button>
                         <button
                           onClick={() => handleDelete(product)}
-                          disabled={deleteProduct.isPending}
+                          disabled={deletingId === product.id}
                           className="p-1.5 text-text-muted hover:text-secondary rounded transition-colors disabled:opacity-50"
                           title="Eliminar"
                         >

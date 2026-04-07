@@ -14,6 +14,7 @@ export function CategoriesTab() {
 
   const [drawerMode, setDrawerMode] = useState<DrawerMode>(null)
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const { data: categories, isLoading, error } = useCategories()
   const deleteCategory = useDeleteCategory()
@@ -35,7 +36,10 @@ export function CategoriesTab() {
 
   function handleDelete(category: Category) {
     if (!window.confirm(`¿Eliminar la categoría "${category.name}"? Esta acción no se puede deshacer.`)) return
-    deleteCategory.mutate(category.id)
+    setDeletingId(category.id)
+    deleteCategory.mutate(category.id, {
+      onSettled: () => setDeletingId(null),
+    })
   }
 
   if (isLoading) {
@@ -86,7 +90,7 @@ export function CategoriesTab() {
                     colSpan={isSuperAdmin ? 3 : 2}
                     className="px-4 py-8 text-center text-text-muted text-xs"
                   >
-                    No hay categorías. Crea la primera.
+                    {isSuperAdmin ? 'No hay categorías. Crea la primera.' : 'No hay categorías.'}
                   </td>
                 </tr>
               )}
@@ -101,14 +105,15 @@ export function CategoriesTab() {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => openEdit(category)}
-                          className="p-1.5 text-text-muted hover:text-primary rounded transition-colors"
+                          disabled={deletingId === category.id}
+                          className="p-1.5 text-text-muted hover:text-primary rounded transition-colors disabled:opacity-50"
                           title="Editar"
                         >
                           <Pencil size={14} />
                         </button>
                         <button
                           onClick={() => handleDelete(category)}
-                          disabled={deleteCategory.isPending}
+                          disabled={deletingId === category.id}
                           className="p-1.5 text-text-muted hover:text-secondary rounded transition-colors disabled:opacity-50"
                           title="Eliminar"
                         >
