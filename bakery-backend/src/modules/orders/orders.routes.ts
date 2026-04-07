@@ -6,7 +6,7 @@ import { ordersController } from "./orders.controller";
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
-    const dir = path.join(__dirname, "../../../../uploads");
+    const dir = path.join(process.cwd(), "uploads");
     fs.mkdirSync(dir, { recursive: true });
     cb(null, dir);
   },

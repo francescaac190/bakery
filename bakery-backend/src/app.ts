@@ -14,7 +14,7 @@ export function createApp() {
   app.use(express.json());
 
   // Serve uploaded design images
-  app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+  app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
   app.get("/", (_req, res) => {
     return sendSuccess(res, { message: "Bakery API is running" });
