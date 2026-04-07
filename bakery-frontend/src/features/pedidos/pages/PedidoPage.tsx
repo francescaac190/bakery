@@ -4,6 +4,7 @@ import { useCart } from "../../products/context/CartContext";
 import { submitOrder } from "../api";
 import { buildWhatsAppMessage, openWhatsApp } from "../utils/whatsapp";
 import productPlaceholder from "../../../assets/product-placeholder.svg";
+import { LocationPicker, type LatLng } from "../ui/LocationPicker";
 
 type FulfillmentType = "PICKUP" | "DELIVERY";
 
@@ -41,6 +42,7 @@ export function PedidoPage() {
   const [pickupDate, setPickupDate] = useState("");
   const [pickupTime, setPickupTime] = useState("");
   const [notes, setNotes] = useState("");
+  const [location, setLocation] = useState<LatLng | null>(null);
 
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -66,10 +68,13 @@ export function PedidoPage() {
   const isValid = useMemo(() => {
     if (!name.trim() || name.trim().length < 2) return false;
     if (!phone.trim() || phone.trim().length < 5) return false;
-    if (fulfillment === "DELIVERY" && address.trim().length < 5) return false;
+    if (fulfillment === "DELIVERY") {
+      if (address.trim().length < 5) return false;
+      if (!location) return false;
+    }
     if (fulfillment === "PICKUP" && (!pickupDate || !pickupTime)) return false;
     return true;
-  }, [name, phone, fulfillment, address, pickupDate, pickupTime]);
+  }, [name, phone, fulfillment, address, location, pickupDate, pickupTime]);
 
   // WhatsApp preview (rebuilt on every relevant change)
   const whatsappPreview = useMemo(() => {
@@ -89,6 +94,7 @@ export function PedidoPage() {
       delivery: {
         fulfillmentType: fulfillment,
         deliveryAddress: fulfillment === "DELIVERY" ? address : undefined,
+        deliveryLocation: fulfillment === "DELIVERY" ? location ?? undefined : undefined,
         pickupAt,
         notes: notes || undefined,
       },
@@ -100,6 +106,7 @@ export function PedidoPage() {
     email,
     fulfillment,
     address,
+    location,
     pickupDate,
     pickupTime,
     notes,
@@ -147,6 +154,7 @@ export function PedidoPage() {
         delivery: {
           fulfillmentType: fulfillment,
           deliveryAddress: fulfillment === "DELIVERY" ? address : undefined,
+          deliveryLocation: fulfillment === "DELIVERY" ? location ?? undefined : undefined,
           pickupAt,
           notes: notes || undefined,
         },
@@ -416,7 +424,7 @@ export function PedidoPage() {
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
-              onClick={() => setFulfillment("DELIVERY")}
+              onClick={() => { setFulfillment("DELIVERY"); setLocation(null); }}
               className={`rounded-xl border py-3 font-mono text-sm font-semibold transition-colors ${
                 fulfillment === "DELIVERY"
                   ? "border-primary bg-background5 text-primary"
@@ -427,7 +435,7 @@ export function PedidoPage() {
             </button>
             <button
               type="button"
-              onClick={() => setFulfillment("PICKUP")}
+              onClick={() => { setFulfillment("PICKUP"); setLocation(null); }}
               className={`rounded-xl border py-3 font-mono text-sm font-semibold transition-colors ${
                 fulfillment === "PICKUP"
                   ? "border-primary bg-background5 text-primary"
@@ -450,6 +458,12 @@ export function PedidoPage() {
                 placeholder="Ej. Av. Arce 1234, Dpto 3"
                 maxLength={300}
                 className="w-full rounded-xl border border-border-card bg-background5 px-4 py-2.5 font-mono text-sm text-text-heading placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <LocationPicker
+                address={address}
+                onAddressChange={setAddress}
+                location={location}
+                onLocationChange={setLocation}
               />
               <div className="mt-3">
                 <label className="block font-mono text-xs text-text-muted mb-1">
