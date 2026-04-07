@@ -49,7 +49,7 @@ export function ProductsTab() {
   }
 
   function handleDelete(product: Product) {
-    if (!window.confirm(`¿Eliminar el producto "${product.name}"? Esta acción no se puede deshacer.`)) return
+    if (!window.confirm(`¿Desactivar el producto "${product.name}"? El producto quedará inactivo y no aparecerá en el menú.`)) return
     setDeletingId(product.id)
     deleteProduct.mutate(product.id, {
       onSettled: () => setDeletingId(null),

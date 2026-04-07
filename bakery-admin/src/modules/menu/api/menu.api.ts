@@ -9,7 +9,7 @@ import type {
   UpdateProductInput,
 } from '../types'
 
-const BASE_URL = `${import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000/api'}/admin/menu`
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:1313/api/v1'}/admin/menu`
 
 function authHeaders() {
   const token = useAuthStore.getState().token
