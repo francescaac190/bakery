@@ -59,8 +59,13 @@ async function updateOrderStatus(orderId: string, status: OrderStatus) {
   });
 }
 
+async function deleteOrder(orderId: string) {
+  return prisma.order.delete({ where: { id: orderId } });
+}
+
 export const adminOrdersRepository = {
   listOrders,
   findOrderById,
   updateOrderStatus,
+  deleteOrder,
 };

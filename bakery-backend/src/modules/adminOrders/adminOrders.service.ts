@@ -65,7 +65,16 @@ async function updateOrderStatus(orderId: string, status: OrderStatus) {
   return adminOrdersRepository.updateOrderStatus(orderId, status);
 }
 
+async function deleteOrder(orderId: string) {
+  const existing = await adminOrdersRepository.findOrderById(orderId);
+  if (!existing) {
+    throw new AppError(404, "Order not found");
+  }
+  await adminOrdersRepository.deleteOrder(orderId);
+}
+
 export const adminOrdersService = {
   listOrders,
   updateOrderStatus,
+  deleteOrder,
 };

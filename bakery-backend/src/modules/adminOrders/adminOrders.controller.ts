@@ -20,7 +20,14 @@ async function updateOrderStatus(req: Request, res: Response) {
   return sendSuccess(res, order);
 }
 
+async function deleteOrder(req: Request, res: Response) {
+  const params = updateOrderStatusParamsSchema.parse(req.params);
+  await adminOrdersService.deleteOrder(params.id);
+  res.status(204).send();
+}
+
 export const adminOrdersController = {
   listOrders,
   updateOrderStatus,
+  deleteOrder,
 };
