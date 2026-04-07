@@ -7,6 +7,19 @@ import productPlaceholder from "../../../assets/product-placeholder.svg";
 
 type FulfillmentType = "PICKUP" | "DELIVERY";
 
+function generateTimeSlots(): string[] {
+  const slots: string[] = [];
+  for (let h = 8; h <= 18; h++) {
+    for (let m = 0; m < 60; m += 15) {
+      if (h === 18 && m > 0) break;
+      slots.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
+    }
+  }
+  return slots;
+}
+
+const TIME_SLOTS = generateTimeSlots();
+
 function getMinDate(): string {
   const d = new Date();
   d.setDate(d.getDate() + 2);
@@ -16,13 +29,6 @@ function getMinDate(): string {
 export function PedidoPage() {
   const navigate = useNavigate();
   const { cartItems, customCake, clearCart } = useCart();
-
-  // Redirect if cart is empty
-  useEffect(() => {
-    if (cartItems.length === 0 && customCake === null) {
-      navigate("/", { replace: true });
-    }
-  }, [cartItems, customCake, navigate]);
 
   // Contact
   const [name, setName] = useState("");
@@ -40,6 +46,13 @@ export function PedidoPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [successOrderId, setSuccessOrderId] = useState<string | null>(null);
+
+  // Redirect if cart is empty (but not after a successful order)
+  useEffect(() => {
+    if (!successOrderId && cartItems.length === 0 && customCake === null) {
+      navigate("/", { replace: true });
+    }
+  }, [cartItems, customCake, navigate, successOrderId]);
 
   const minDate = getMinDate();
 
@@ -62,7 +75,7 @@ export function PedidoPage() {
   const whatsappPreview = useMemo(() => {
     if (!name || !phone) return "";
     const pickupAt =
-      fulfillment === "PICKUP" && pickupDate && pickupTime
+      pickupDate && pickupTime
         ? new Date(`${pickupDate}T${pickupTime}`).toISOString()
         : undefined;
     return buildWhatsAppMessage({
@@ -100,12 +113,12 @@ export function PedidoPage() {
     setIsSubmitting(true);
     setSubmitError(null);
 
-    const pickupAt =
-      fulfillment === "PICKUP" && pickupDate && pickupTime
-        ? new Date(`${pickupDate}T${pickupTime}`).toISOString()
-        : undefined;
-
     try {
+      const pickupAt =
+        pickupDate && pickupTime
+          ? new Date(`${pickupDate}T${pickupTime}`).toISOString()
+          : undefined;
+
       const result = await submitOrder(
         cartItems,
         customCake,
@@ -142,11 +155,11 @@ export function PedidoPage() {
       });
 
       clearCart();
-      // setSuccessOrderId(result.orderId);
+      setSuccessOrderId(result.orderId);
       openWhatsApp(message);
     } catch (err) {
       setSubmitError(
-        "Hubo un problema al registrar tu pedido. Por favor intenta de nuevo.",
+        `Hubo un problema al registrar tu pedido. Por favor intenta de nuevo.\n ${err}`,
       );
     } finally {
       setIsSubmitting(false);
@@ -159,7 +172,7 @@ export function PedidoPage() {
       <div className="min-h-screen bg-background5 flex items-center justify-center px-4">
         <div className="max-w-sm w-full bg-white rounded-2xl border border-border-card p-8 text-center">
           <div className="text-5xl mb-4">🎂</div>
-          <h1 className="font-display text-2xl font-bold text-text-heading mb-2">
+          <h1 className="font-mono text-2xl font-bold text-text-heading mb-2">
             ¡Pedido enviado!
           </h1>
           <p className="font-mono text-sm text-text-muted mb-4">
@@ -197,7 +210,7 @@ export function PedidoPage() {
           >
             ← volver
           </button>
-          <h1 className="font-display text-2xl font-bold text-text-heading">
+          <h1 className="font-mono text-2xl font-bold text-text-heading">
             Revisa tu pedido
           </h1>
           <p className="font-mono text-sm text-text-muted mt-1">
@@ -215,7 +228,7 @@ export function PedidoPage() {
 
         {/* Order summary */}
         <div className="bg-white rounded-2xl border border-border-card p-6">
-          <h2 className="font-display text-lg font-bold text-text-heading mb-4">
+          <h2 className="font-mono text-lg font-bold text-text-heading mb-4">
             Resumen del pedido
           </h2>
 
@@ -335,7 +348,7 @@ export function PedidoPage() {
               <span className="font-mono text-sm text-text-muted">
                 Subtotal productos
               </span>
-              <span className="font-display text-lg font-bold text-text-heading">
+              <span className="font-mono text-lg font-bold text-text-heading">
                 {currency}. {(subtotal / 100).toFixed(2)}
               </span>
             </div>
@@ -349,7 +362,7 @@ export function PedidoPage() {
 
         {/* Contact */}
         <div className="bg-white rounded-2xl border border-border-card p-6 space-y-4">
-          <h2 className="font-display text-lg font-bold text-text-heading">
+          <h2 className="font-mono text-lg font-bold text-text-heading">
             Datos de contacto
           </h2>
           <div>
@@ -395,7 +408,7 @@ export function PedidoPage() {
 
         {/* Delivery */}
         <div className="bg-white rounded-2xl border border-border-card p-6 space-y-4">
-          <h2 className="font-display text-lg font-bold text-text-heading">
+          <h2 className="font-mono text-lg font-bold text-text-heading">
             Detalle de entrega
           </h2>
 
@@ -450,12 +463,16 @@ export function PedidoPage() {
                     onChange={(e) => setPickupDate(e.target.value)}
                     className="w-full rounded-xl border border-border-card bg-background5 px-4 py-2.5 font-mono text-sm text-text-heading focus:outline-none focus:ring-2 focus:ring-primary"
                   />
-                  <input
-                    type="time"
+                  <select
                     value={pickupTime}
                     onChange={(e) => setPickupTime(e.target.value)}
                     className="w-full rounded-xl border border-border-card bg-background5 px-4 py-2.5 font-mono text-sm text-text-heading focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
+                  >
+                    <option value="">Seleccionar hora</option>
+                    {TIME_SLOTS.map((slot) => (
+                      <option key={slot} value={slot}>{slot}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>
@@ -481,12 +498,16 @@ export function PedidoPage() {
                   onChange={(e) => setPickupDate(e.target.value)}
                   className="w-full rounded-xl border border-border-card bg-background5 px-4 py-2.5 font-mono text-sm text-text-heading focus:outline-none focus:ring-2 focus:ring-primary"
                 />
-                <input
-                  type="time"
+                <select
                   value={pickupTime}
                   onChange={(e) => setPickupTime(e.target.value)}
                   className="w-full rounded-xl border border-border-card bg-background5 px-4 py-2.5 font-mono text-sm text-text-heading focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+                >
+                  <option value="">Seleccionar hora</option>
+                  {TIME_SLOTS.map((slot) => (
+                    <option key={slot} value={slot}>{slot}</option>
+                  ))}
+                </select>
               </div>
             </div>
           )}
@@ -508,7 +529,7 @@ export function PedidoPage() {
         {/* WhatsApp message preview */}
         {whatsappPreview && (
           <div className="bg-white rounded-2xl border border-border-card p-6">
-            <h2 className="font-display text-lg font-bold text-text-heading mb-3">
+            <h2 className="font-mono text-lg font-bold text-text-heading mb-3">
               Mensaje que se enviará
             </h2>
             <pre className="whitespace-pre-wrap rounded-xl bg-background5 p-4 font-mono text-xs text-text-secondary leading-relaxed overflow-x-auto">
@@ -544,8 +565,8 @@ export function PedidoPage() {
           <button
             type="button"
             onClick={handleSubmit}
-            // disabled={!isValid || isSubmitting}
-            className="app-button"
+            disabled={!isValid || isSubmitting}
+            className="app-button disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ flex: 2 }}
           >
             {isSubmitting ? "Enviando..." : "Enviar por WhatsApp →"}
