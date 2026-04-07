@@ -54,6 +54,7 @@ async function createOrder(
     status: order.status,
     totalCents: order.totalCents,
     estimatedReadyAt: order.pickupAt,
+    inspirationImageUrl,
   };
 }
 

@@ -11,7 +11,7 @@ export function errorHandler(
   _next: NextFunction,
 ) {
   if (err instanceof ZodError) {
-    return sendError(res, "Validation error", 400, err.flatten());
+    return sendError(res, "Validation error", 400, err.issues);
   }
 
   if (err instanceof AppError) {

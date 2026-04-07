@@ -40,4 +40,5 @@ export type CreateOrderResult = {
   status: OrderStatus;
   totalCents: number;
   estimatedReadyAt: Date | null;
+  inspirationImageUrl?: string;
 };

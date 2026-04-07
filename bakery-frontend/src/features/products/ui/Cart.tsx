@@ -50,7 +50,8 @@ export function Cart({
     0,
   );
   const currency = items[0]?.product.currency ?? "BOB";
-  const totalItems = items.reduce((sum, i) => sum + i.quantity, 0) + (customCake ? 1 : 0);
+  const totalItems =
+    items.reduce((sum, i) => sum + i.quantity, 0) + (customCake ? 1 : 0);
   const isEmpty = items.length === 0 && customCake === null;
 
   function handleCheckout() {
@@ -84,7 +85,7 @@ export function Cart({
           <div className="fixed bottom-0 left-0 right-0 z-20 overflow-hidden rounded-t-2xl border border-border-card bg-white shadow-2xl sm:absolute sm:bottom-auto sm:left-auto sm:right-0 sm:top-14 sm:w-96 sm:rounded-2xl">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-border-card px-5 py-4">
-              <h2 className="font-display text-base font-bold text-text-heading">
+              <h2 className="font-mono text-base font-bold text-text-heading">
                 Tu carrito
               </h2>
               {totalItems > 0 && (
@@ -113,11 +114,16 @@ export function Cart({
                 <div className="max-h-80 overflow-y-auto divide-y divide-background5">
                   {/* Regular items */}
                   {items.map(({ product, quantity }) => (
-                    <div key={product.id} className="flex items-center gap-3 px-5 py-3">
+                    <div
+                      key={product.id}
+                      className="flex items-center gap-3 px-5 py-3"
+                    >
                       <img
                         src={product.imageUrl || productPlaceholder}
                         alt={product.name}
-                        onError={(e) => { e.currentTarget.src = productPlaceholder; }}
+                        onError={(e) => {
+                          e.currentTarget.src = productPlaceholder;
+                        }}
                         className="h-12 w-12 flex-shrink-0 rounded-xl object-cover"
                       />
                       <div className="min-w-0 flex-1">
@@ -125,7 +131,8 @@ export function Cart({
                           {product.name}
                         </p>
                         <p className="font-mono text-xs text-text-muted">
-                          {currency}. {(product.priceCents / 100).toFixed(2)} c/u
+                          {currency}. {(product.priceCents / 100).toFixed(2)}{" "}
+                          c/u
                         </p>
                       </div>
                       <div className="flex items-center gap-1.5">
@@ -177,22 +184,34 @@ export function Cart({
                             <div className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-0.5">
                               {customCake.servings && (
                                 <p className="font-mono text-xs text-text-muted">
-                                  <span className="text-text-secondary">Porciones:</span> {customCake.servings}
+                                  <span className="text-text-secondary">
+                                    Porciones:
+                                  </span>{" "}
+                                  {customCake.servings}
                                 </p>
                               )}
                               {customCake.flavor && (
                                 <p className="font-mono text-xs text-text-muted">
-                                  <span className="text-text-secondary">Sabor:</span> {customCake.flavor}
+                                  <span className="text-text-secondary">
+                                    Sabor:
+                                  </span>{" "}
+                                  {customCake.flavor}
                                 </p>
                               )}
                               {customCake.filling && (
                                 <p className="font-mono text-xs text-text-muted">
-                                  <span className="text-text-secondary">Relleno:</span> {customCake.filling}
+                                  <span className="text-text-secondary">
+                                    Relleno:
+                                  </span>{" "}
+                                  {customCake.filling}
                                 </p>
                               )}
                               {customCake.frosting && (
                                 <p className="font-mono text-xs text-text-muted">
-                                  <span className="text-text-secondary">Cobertura:</span> {customCake.frosting}
+                                  <span className="text-text-secondary">
+                                    Cobertura:
+                                  </span>{" "}
+                                  {customCake.frosting}
                                 </p>
                               )}
                             </div>
@@ -208,7 +227,10 @@ export function Cart({
                         </div>
                         <button
                           type="button"
-                          onClick={() => { setIsOpen(false); onEditCustomCake(); }}
+                          onClick={() => {
+                            setIsOpen(false);
+                            onEditCustomCake();
+                          }}
                           className="mt-2 font-mono text-xs text-primary hover:underline"
                         >
                           ✏️ Editar detalles
@@ -222,7 +244,9 @@ export function Cart({
                 <div className="border-t border-border-card bg-background5/40 px-5 py-4">
                   {items.length > 0 && (
                     <div className="mb-1 flex items-center justify-between">
-                      <span className="font-mono text-sm text-text-muted">Subtotal productos</span>
+                      <span className="font-mono text-sm text-text-muted">
+                        Subtotal productos
+                      </span>
                       <span className="font-display text-lg font-bold text-text-heading">
                         {currency}. {(total / 100).toFixed(2)}
                       </span>

@@ -43,17 +43,35 @@ export default function PersonalizaPage() {
   // Pre-fill from existing cart customCake (editing mode)
   const isEditing = customCake !== null;
 
-  const [servings, setServings] = useState<string | null>(customCake?.servings ?? null);
-  const [flavor, setFlavor] = useState<string | null>(customCake?.flavor ?? null);
-  const [filling, setFilling] = useState<string | null>(customCake?.filling ?? null);
-  const [frosting, setFrosting] = useState<string | null>(customCake?.frosting ?? null);
-  const [messageOnCake, setMessageOnCake] = useState(customCake?.messageOnCake ?? "");
+  const [servings, setServings] = useState<string | null>(
+    customCake?.servings ?? null,
+  );
+  const [flavor, setFlavor] = useState<string | null>(
+    customCake?.flavor ?? null,
+  );
+  const [filling, setFilling] = useState<string | null>(
+    customCake?.filling ?? null,
+  );
+  const [frosting, setFrosting] = useState<string | null>(
+    customCake?.frosting ?? null,
+  );
+  const [messageOnCake, setMessageOnCake] = useState(
+    customCake?.messageOnCake ?? "",
+  );
   const [designNotes, setDesignNotes] = useState(customCake?.designNotes ?? "");
-  const [imageFile, setImageFile] = useState<File | null>(customCake?.inspirationImageFile ?? null);
-  const [imagePreview, setImagePreview] = useState<string | null>(customCake?.inspirationImagePreview ?? null);
+  const [imageFile, setImageFile] = useState<File | null>(
+    customCake?.inspirationImageFile ?? null,
+  );
+  const [imagePreview, setImagePreview] = useState<string | null>(
+    customCake?.inspirationImagePreview ?? null,
+  );
 
   // Resolve product — from navigation state or from existing cart cake
-  const product = state?.product ?? (customCake ? { id: customCake.productId, name: customCake.productName } as Product : null);
+  const product =
+    state?.product ??
+    (customCake
+      ? ({ id: customCake.productId, name: customCake.productName } as Product)
+      : null);
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null;
@@ -86,7 +104,6 @@ export default function PersonalizaPage() {
   return (
     <div className="min-h-screen bg-background5">
       <div className="mx-auto max-w-lg px-4 py-6 space-y-4">
-
         {/* Header */}
         <div className="bg-white rounded-2xl border border-border-card p-6">
           <button
@@ -95,7 +112,7 @@ export default function PersonalizaPage() {
           >
             ← Volver
           </button>
-          <h1 className="font-display text-2xl font-bold text-text-heading">
+          <h1 className="font-mono text-2xl font-bold text-text-heading">
             Personaliza tu {product?.name ?? "Torta"}
           </h1>
           <p className="font-mono text-sm text-text-muted mt-1">
@@ -105,12 +122,14 @@ export default function PersonalizaPage() {
 
         {/* Cake details */}
         <div className="bg-white rounded-2xl border border-border-card p-6 space-y-5">
-          <h2 className="font-display text-lg font-bold text-text-heading">
+          <h2 className="font-mono text-lg font-bold text-text-heading">
             Detalles de la torta
           </h2>
 
           <div>
-            <p className="font-mono text-sm text-text-muted mb-2">Cantidad de personas</p>
+            <p className="font-mono text-sm text-text-muted mb-2">
+              Cantidad de personas
+            </p>
             <ChipSelector
               options={SERVINGS_OPTIONS}
               multi={false}
@@ -120,7 +139,9 @@ export default function PersonalizaPage() {
           </div>
 
           <div>
-            <p className="font-mono text-sm text-text-muted mb-2">Sabor de masa</p>
+            <p className="font-mono text-sm text-text-muted mb-2">
+              Sabor de masa
+            </p>
             <ChipSelector
               options={FLAVOR_OPTIONS}
               multi={false}
@@ -150,7 +171,9 @@ export default function PersonalizaPage() {
           </div>
 
           <div>
-            <p className="font-mono text-sm text-text-muted mb-2">Mensaje en la torta (opcional)</p>
+            <p className="font-mono text-sm text-text-muted mb-2">
+              Mensaje en la torta (opcional)
+            </p>
             <input
               type="text"
               maxLength={120}
@@ -159,11 +182,15 @@ export default function PersonalizaPage() {
               placeholder='Ej: "Feliz cumpleaños, Ana!"'
               className="w-full rounded-xl border border-border-card bg-background5 px-4 py-2.5 font-mono text-sm text-text-heading placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary"
             />
-            <p className="mt-1 text-right font-mono text-xs text-text-muted">{messageOnCake.length}/120</p>
+            <p className="mt-1 text-right font-mono text-xs text-text-muted">
+              {messageOnCake.length}/120
+            </p>
           </div>
 
           <div>
-            <p className="font-mono text-sm text-text-muted mb-2">Imagen de diseño (opcional)</p>
+            <p className="font-mono text-sm text-text-muted mb-2">
+              Imagen de diseño (opcional)
+            </p>
             <div
               onClick={() => fileInputRef.current?.click()}
               className="cursor-pointer rounded-xl border-2 border-dashed border-border-card p-4 text-center hover:border-primary transition-colors"
@@ -176,8 +203,12 @@ export default function PersonalizaPage() {
                 />
               ) : (
                 <div className="py-4">
-                  <p className="font-mono text-sm text-text-muted">Haz clic para subir una imagen de referencia</p>
-                  <p className="font-mono text-xs text-text-muted mt-1">JPG, PNG, WebP — máx. 10 MB</p>
+                  <p className="font-mono text-sm text-text-muted">
+                    Haz clic para subir una imagen de referencia
+                  </p>
+                  <p className="font-mono text-xs text-text-muted mt-1">
+                    JPG, PNG, WebP — máx. 10 MB
+                  </p>
                 </div>
               )}
             </div>
@@ -190,10 +221,15 @@ export default function PersonalizaPage() {
             />
             {imageFile && (
               <div className="mt-2 flex items-center justify-between">
-                <p className="font-mono text-xs text-text-muted">{imageFile.name}</p>
+                <p className="font-mono text-xs text-text-muted">
+                  {imageFile.name}
+                </p>
                 <button
                   type="button"
-                  onClick={() => { setImageFile(null); setImagePreview(null); }}
+                  onClick={() => {
+                    setImageFile(null);
+                    setImagePreview(null);
+                  }}
                   className="font-mono text-xs text-secondary hover:underline"
                 >
                   Quitar
@@ -203,7 +239,9 @@ export default function PersonalizaPage() {
           </div>
 
           <div>
-            <p className="font-mono text-sm text-text-muted mb-2">Observaciones adicionales (opcional)</p>
+            <p className="font-mono text-sm text-text-muted mb-2">
+              Observaciones adicionales (opcional)
+            </p>
             <textarea
               value={designNotes}
               onChange={(e) => setDesignNotes(e.target.value)}
@@ -232,7 +270,6 @@ export default function PersonalizaPage() {
             {isEditing ? "Actualizar torta" : "Agregar al carrito"} →
           </button>
         </div>
-
       </div>
     </div>
   );

@@ -8,7 +8,7 @@ export type Product = {
     isActive: boolean;
     isCustom: boolean;
     categoryId: string;
-    categoryName: string;
+    categoryName?: string;
     categoryImageUrl?: string;
     createdAt: Date;
     updatedAt: Date;

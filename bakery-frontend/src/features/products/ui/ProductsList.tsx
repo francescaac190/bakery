@@ -70,7 +70,7 @@ export function ProductsList() {
               <span className="text-xs font-semibold uppercase tracking-widest text-rose-300">
                 {product.categoryName}
               </span>
-              <h2 className="font-display text-base sm:text-xl font-semibold leading-tight text-stone-800">
+              <h2 className="font-mono text-base sm:text-xl font-semibold leading-tight text-stone-800">
                 {product.name}
               </h2>
               {product.description && (
@@ -85,7 +85,9 @@ export function ProductsList() {
                   </span>
                 ) : (
                   <div className="inline-flex items-baseline gap-0.5 self-start rounded-full bg-rose-50 px-2.5 py-0.5 sm:px-3 sm:py-1">
-                    <span className="text-xs font-semibold text-rose-400">{product.currency}.</span>
+                    <span className="text-xs font-semibold text-rose-400">
+                      {product.currency}.
+                    </span>
                     <span className="text-base sm:text-lg font-bold text-rose-600">
                       {(product.priceCents / 100).toFixed(2)}
                     </span>
@@ -96,7 +98,9 @@ export function ProductsList() {
 
             {/* Arrow hint */}
             <div className="flex-shrink-0 flex items-center self-center">
-              <span className="text-border-subtle transition-colors group-hover:text-primary">›</span>
+              <span className="text-border-subtle transition-colors group-hover:text-primary">
+                ›
+              </span>
             </div>
           </button>
         </li>

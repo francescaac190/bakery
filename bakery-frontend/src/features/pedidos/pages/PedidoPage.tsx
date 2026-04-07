@@ -94,7 +94,8 @@ export function PedidoPage() {
       delivery: {
         fulfillmentType: fulfillment,
         deliveryAddress: fulfillment === "DELIVERY" ? address : undefined,
-        deliveryLocation: fulfillment === "DELIVERY" ? location ?? undefined : undefined,
+        deliveryLocation:
+          fulfillment === "DELIVERY" ? (location ?? undefined) : undefined,
         pickupAt,
         notes: notes || undefined,
       },
@@ -154,7 +155,8 @@ export function PedidoPage() {
         delivery: {
           fulfillmentType: fulfillment,
           deliveryAddress: fulfillment === "DELIVERY" ? address : undefined,
-          deliveryLocation: fulfillment === "DELIVERY" ? location ?? undefined : undefined,
+          deliveryLocation:
+            fulfillment === "DELIVERY" ? (location ?? undefined) : undefined,
           pickupAt,
           notes: notes || undefined,
         },
@@ -275,7 +277,7 @@ export function PedidoPage() {
                   precio a consultar
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+              <div className="gap-x-4 gap-y-1">
                 {customCake.servings && (
                   <div className="flex justify-between">
                     <span className="font-mono text-xs text-text-muted">
@@ -424,7 +426,10 @@ export function PedidoPage() {
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
-              onClick={() => { setFulfillment("DELIVERY"); setLocation(null); }}
+              onClick={() => {
+                setFulfillment("DELIVERY");
+                setLocation(null);
+              }}
               className={`rounded-xl border py-3 font-mono text-sm font-semibold transition-colors ${
                 fulfillment === "DELIVERY"
                   ? "border-primary bg-background5 text-primary"
@@ -435,7 +440,10 @@ export function PedidoPage() {
             </button>
             <button
               type="button"
-              onClick={() => { setFulfillment("PICKUP"); setLocation(null); }}
+              onClick={() => {
+                setFulfillment("PICKUP");
+                setLocation(null);
+              }}
               className={`rounded-xl border py-3 font-mono text-sm font-semibold transition-colors ${
                 fulfillment === "PICKUP"
                   ? "border-primary bg-background5 text-primary"
@@ -484,7 +492,9 @@ export function PedidoPage() {
                   >
                     <option value="">Seleccionar hora</option>
                     {TIME_SLOTS.map((slot) => (
-                      <option key={slot} value={slot}>{slot}</option>
+                      <option key={slot} value={slot}>
+                        {slot}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -519,7 +529,9 @@ export function PedidoPage() {
                 >
                   <option value="">Seleccionar hora</option>
                   {TIME_SLOTS.map((slot) => (
-                    <option key={slot} value={slot}>{slot}</option>
+                    <option key={slot} value={slot}>
+                      {slot}
+                    </option>
                   ))}
                 </select>
               </div>

@@ -4,10 +4,28 @@ import type { Product } from "../types";
 import { useCart } from "../context/CartContext";
 import productPlaceholder from "../../../assets/product-placeholder.svg";
 
-const FLAVOR_OPTIONS = ["Vainilla", "Chocolate", "Red Velvet", "Zanahoria", "Limón"];
-const FILLING_OPTIONS = ["Chocolate", "Brigadeiro", "Manjar", "Crema pastelera", "Queso crema"];
-const FROSTING_OPTIONS = ["Sin cobertura", "Chocolate", "Queso crema"];
-const SERVINGS_OPTIONS = ["Mini (2 personas)", "5 personas", "10 personas", "20 personas", "30 personas"];
+// const FLAVOR_OPTIONS = [
+//   "Vainilla",
+//   "Chocolate",
+//   "Red Velvet",
+//   "Zanahoria",
+//   "Limón",
+// ];
+// const FILLING_OPTIONS = [
+//   "Chocolate",
+//   "Brigadeiro",
+//   "Manjar",
+//   "Crema pastelera",
+//   "Queso crema",
+// ];
+// const FROSTING_OPTIONS = ["Sin cobertura", "Chocolate", "Queso crema"];
+// const SERVINGS_OPTIONS = [
+//   "Mini (2 personas)",
+//   "5 personas",
+//   "10 personas",
+//   "20 personas",
+//   "30 personas",
+// ];
 
 export function ProductDetailPage() {
   const { state } = useLocation() as { state?: { product?: Product } };
@@ -34,7 +52,6 @@ export function ProductDetailPage() {
   return (
     <div className="min-h-screen bg-background5">
       <div className="mx-auto max-w-lg px-4 py-6 space-y-4">
-
         {/* Back */}
         <button
           type="button"
@@ -49,7 +66,9 @@ export function ProductDetailPage() {
           <img
             src={product.imageUrl || productPlaceholder}
             alt={product.name}
-            onError={(e) => { e.currentTarget.src = productPlaceholder; }}
+            onError={(e) => {
+              e.currentTarget.src = productPlaceholder;
+            }}
             className="h-full w-full object-cover"
           />
           {product.isCustom && (
@@ -64,7 +83,7 @@ export function ProductDetailPage() {
           <span className="text-xs font-semibold uppercase tracking-widest text-rose-300">
             {product.categoryName}
           </span>
-          <h1 className="font-display mt-1 text-2xl font-bold text-text-heading">
+          <h1 className="font-mono mt-1 text-2xl font-bold text-text-heading">
             {product.name}
           </h1>
 
@@ -81,7 +100,9 @@ export function ProductDetailPage() {
               </span>
             ) : (
               <div className="inline-flex items-baseline gap-0.5 rounded-full bg-rose-50 px-4 py-1.5">
-                <span className="text-sm font-semibold text-rose-400">{product.currency}.</span>
+                <span className="text-sm font-semibold text-rose-400">
+                  {product.currency}.
+                </span>
                 <span className="text-2xl font-bold text-rose-600">
                   {(product.priceCents / 100).toFixed(2)}
                 </span>
@@ -93,7 +114,7 @@ export function ProductDetailPage() {
         {/* Customization options (custom cakes only) */}
         {product.isCustom && (
           <div className="bg-white rounded-2xl border border-border-card p-6 space-y-4">
-            <h2 className="font-display text-lg font-bold text-text-heading">
+            <h2 className="font-mono text-lg font-bold text-text-heading">
               Qué puedes personalizar
             </h2>
 
@@ -101,58 +122,77 @@ export function ProductDetailPage() {
               <p className="mb-2 font-mono text-xs font-semibold uppercase tracking-widest text-text-muted">
                 Porciones
               </p>
-              <div className="flex flex-wrap gap-2">
+              {/* <div className="flex flex-wrap gap-2">
                 {SERVINGS_OPTIONS.map((opt) => (
-                  <span key={opt} className="rounded-full border border-border-card bg-background5 px-3 py-1 font-mono text-xs text-text-secondary">
+                  <span
+                    key={opt}
+                    className="rounded-full border border-border-card bg-background5 px-3 py-1 font-mono text-xs text-text-secondary"
+                  >
                     {opt}
                   </span>
                 ))}
-              </div>
+              </div> */}
             </div>
 
             <div>
               <p className="mb-2 font-mono text-xs font-semibold uppercase tracking-widest text-text-muted">
                 Sabor de masa
               </p>
-              <div className="flex flex-wrap gap-2">
+              {/* <div className="flex flex-wrap gap-2">
                 {FLAVOR_OPTIONS.map((opt) => (
-                  <span key={opt} className="rounded-full border border-border-card bg-background5 px-3 py-1 font-mono text-xs text-text-secondary">
+                  <span
+                    key={opt}
+                    className="rounded-full border border-border-card bg-background5 px-3 py-1 font-mono text-xs text-text-secondary"
+                  >
                     {opt}
                   </span>
                 ))}
-              </div>
+              </div> */}
             </div>
 
             <div>
               <p className="mb-2 font-mono text-xs font-semibold uppercase tracking-widest text-text-muted">
                 Relleno
               </p>
-              <div className="flex flex-wrap gap-2">
+              {/* <div className="flex flex-wrap gap-2">
                 {FILLING_OPTIONS.map((opt) => (
-                  <span key={opt} className="rounded-full border border-border-card bg-background5 px-3 py-1 font-mono text-xs text-text-secondary">
+                  <span
+                    key={opt}
+                    className="rounded-full border border-border-card bg-background5 px-3 py-1 font-mono text-xs text-text-secondary"
+                  >
                     {opt}
                   </span>
                 ))}
-              </div>
+              </div> */}
             </div>
 
             <div>
               <p className="mb-2 font-mono text-xs font-semibold uppercase tracking-widest text-text-muted">
                 Cobertura
               </p>
-              <div className="flex flex-wrap gap-2">
+              {/* <div className="flex flex-wrap gap-2">
                 {FROSTING_OPTIONS.map((opt) => (
-                  <span key={opt} className="rounded-full border border-border-card bg-background5 px-3 py-1 font-mono text-xs text-text-secondary">
+                  <span
+                    key={opt}
+                    className="rounded-full border border-border-card bg-background5 px-3 py-1 font-mono text-xs text-text-secondary"
+                  >
                     {opt}
                   </span>
                 ))}
-              </div>
+              </div> */}
             </div>
 
             <div className="rounded-xl border border-border-card bg-background5 px-4 py-3">
               <p className="font-mono text-xs text-text-muted">
-                También puedes incluir un <span className="font-semibold text-text-secondary">mensaje personalizado</span> y subir una{" "}
-                <span className="font-semibold text-text-secondary">imagen de referencia</span> para el diseño.
+                También puedes incluir un{" "}
+                <span className="font-semibold text-text-secondary">
+                  mensaje personalizado
+                </span>{" "}
+                y subir una{" "}
+                <span className="font-semibold text-text-secondary">
+                  imagen de referencia
+                </span>{" "}
+                para el diseño.
               </p>
             </div>
           </div>
@@ -164,9 +204,10 @@ export function ProductDetailPage() {
           onClick={product.isCustom ? handlePersonalize : handleAddToCart}
           className="app-button w-full"
         >
-          {product.isCustom ? "✦ Personalizar tu torta →" : "+ Agregar al carrito"}
+          {product.isCustom
+            ? "✦ Personalizar tu torta →"
+            : "+ Agregar al carrito"}
         </button>
-
       </div>
     </div>
   );
