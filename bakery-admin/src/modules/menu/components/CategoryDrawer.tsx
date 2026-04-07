@@ -29,10 +29,10 @@ export function CategoryDrawer({ mode, category, onClose }: Props) {
   }, [mode, category])
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape' && !isPending) onClose() }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [onClose])
+  }, [onClose, isPending])
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -56,7 +56,7 @@ export function CategoryDrawer({ mode, category, onClose }: Props) {
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/20 z-40" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/20 z-40" onClick={() => !isPending && onClose()} />
 
       {/* Panel */}
       <div className="fixed inset-y-0 right-0 w-96 bg-surface border-l-2 border-border-subtle shadow-2xl z-50 flex flex-col">
@@ -67,6 +67,7 @@ export function CategoryDrawer({ mode, category, onClose }: Props) {
           <button
             type="button"
             onClick={onClose}
+            aria-label="Cerrar"
             className="text-text-muted hover:text-text transition-colors"
           >
             <X size={18} />
