@@ -247,7 +247,7 @@ export function Cart({
                       <span className="font-mono text-sm text-text-muted">
                         Subtotal productos
                       </span>
-                      <span className="font-display text-lg font-bold text-text-heading">
+                      <span className="font-mono text-lg font-bold text-text-heading">
                         {currency}. {(total / 100).toFixed(2)}
                       </span>
                     </div>
