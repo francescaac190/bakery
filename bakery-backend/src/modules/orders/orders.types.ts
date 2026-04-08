@@ -19,6 +19,7 @@ export type CreateOrderInput = {
   items: Array<{
     productId: string;
     quantity: number;
+    variantId?: string;
     notes?: string;
   }>;
   customCake?: {

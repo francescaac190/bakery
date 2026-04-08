@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import type { Product } from "../types";
+import type { Product, ProductVariant } from "../types";
 import { useCart } from "../context/CartContext";
 import productPlaceholder from "../../../assets/product-placeholder.svg";
 
@@ -38,10 +38,26 @@ export function ProductDetailPage() {
     if (!product) navigate("/", { replace: true });
   }, [product, navigate]);
 
+  const hasVariants = !product?.isCustom && (product?.variants?.length ?? 0) > 0;
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
+
+  // Auto-select first variant when product has variants
+  useEffect(() => {
+    if (hasVariants && product?.variants?.[0]) {
+      setSelectedVariant(product.variants[0]);
+    }
+  }, [product]);
+
   if (!product) return null;
 
+  const displayPrice = selectedVariant?.priceCents ?? product.priceCents;
+
   function handleAddToCart() {
-    addToCart(product!);
+    if (selectedVariant) {
+      addToCart(product!, { id: selectedVariant.id, label: selectedVariant.label, priceCents: selectedVariant.priceCents });
+    } else {
+      addToCart(product!);
+    }
     navigate(-1);
   }
 
@@ -104,11 +120,36 @@ export function ProductDetailPage() {
                   {product.currency}.
                 </span>
                 <span className="text-2xl font-bold text-rose-600">
-                  {(product.priceCents / 100).toFixed(2)}
+                  {(displayPrice / 100).toFixed(2)}
                 </span>
               </div>
             )}
           </div>
+
+          {/* Variant selector */}
+          {hasVariants && product.variants && (
+            <div className="mt-4">
+              <p className="mb-2 font-mono text-xs font-semibold uppercase tracking-widest text-text-muted">
+                Tamaño
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {product.variants.map((v) => (
+                  <button
+                    key={v.id}
+                    type="button"
+                    onClick={() => setSelectedVariant(v)}
+                    className={`rounded-full border px-3 py-1.5 font-mono text-sm transition-colors ${
+                      selectedVariant?.id === v.id
+                        ? "border-primary bg-rose-50 text-primary font-semibold"
+                        : "border-border-card bg-white text-text-secondary hover:border-rose-200"
+                    }`}
+                  >
+                    {v.label} &middot; {product.currency}. {(v.priceCents / 100).toFixed(2)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Customization options (custom cakes only) */}

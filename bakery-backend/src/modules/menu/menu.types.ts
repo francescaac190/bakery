@@ -8,6 +8,14 @@ export type CreateCategoryInput = {
   imageUrl?: string;
 };
 
+export type VariantInput = {
+  id?: string;
+  label: string;
+  priceCents: number;
+  sortOrder: number;
+  isActive: boolean;
+};
+
 export type CreateProductInput = {
   name: string;
   description?: string;
@@ -17,6 +25,7 @@ export type CreateProductInput = {
   isActive: boolean;
   isCustom: boolean;
   categoryId?: string;
+  variants?: VariantInput[];
 };
 
 export type UpdateProductInput = {
@@ -28,6 +37,7 @@ export type UpdateProductInput = {
   isActive?: boolean;
   isCustom?: boolean;
   categoryId?: string | null;
+  variants?: VariantInput[];
 };
 
 export type UpdateCategoryInput = {

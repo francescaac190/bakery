@@ -70,7 +70,8 @@ export function PedidoPage() {
   const minDate = getMinDate();
 
   const subtotal = cartItems.reduce(
-    (sum, { product, quantity }) => sum + product.priceCents * quantity,
+    (sum, { product, quantity, variantPriceCents }) =>
+      sum + (variantPriceCents ?? product.priceCents) * quantity,
     0,
   );
   const currency = cartItems[0]?.product.currency ?? "BOB";
@@ -273,30 +274,37 @@ export function PedidoPage() {
             Resumen del pedido
           </h2>
 
-          {cartItems.map(({ product, quantity }) => (
-            <div
-              key={product.id}
-              className="flex items-center gap-3 py-2 border-b border-background5 last:border-0"
-            >
-              <img
-                src={product.imageUrl || productPlaceholder}
-                alt={product.name}
-                onError={(e) => {
-                  e.currentTarget.src = productPlaceholder;
-                }}
-                className="h-12 w-12 flex-shrink-0 rounded-xl object-cover"
-              />
-              <div className="flex-1 min-w-0">
-                <p className="font-mono text-sm font-semibold text-text-heading">
-                  {product.name}
+          {cartItems.map((item) => {
+            const unitPrice = item.variantPriceCents ?? item.product.priceCents;
+            const key = item.variantId ? `${item.product.id}:${item.variantId}` : item.product.id;
+            return (
+              <div
+                key={key}
+                className="flex items-center gap-3 py-2 border-b border-background5 last:border-0"
+              >
+                <img
+                  src={item.product.imageUrl || productPlaceholder}
+                  alt={item.product.name}
+                  onError={(e) => {
+                    e.currentTarget.src = productPlaceholder;
+                  }}
+                  className="h-12 w-12 flex-shrink-0 rounded-xl object-cover"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="font-mono text-sm font-semibold text-text-heading">
+                    {item.product.name}
+                  </p>
+                  {item.variantLabel && (
+                    <p className="font-mono text-xs text-rose-400">{item.variantLabel}</p>
+                  )}
+                  <p className="font-mono text-xs text-text-muted">x{item.quantity}</p>
+                </div>
+                <p className="font-mono text-sm font-bold text-text-heading">
+                  {currency}. {((unitPrice * item.quantity) / 100).toFixed(2)}
                 </p>
-                <p className="font-mono text-xs text-text-muted">x{quantity}</p>
               </div>
-              <p className="font-mono text-sm font-bold text-text-heading">
-                {currency}. {((product.priceCents * quantity) / 100).toFixed(2)}
-              </p>
-            </div>
-          ))}
+            );
+          })}
 
           {customCake && (
             <div className="mt-2 rounded-xl border border-border-card bg-background5 p-4">

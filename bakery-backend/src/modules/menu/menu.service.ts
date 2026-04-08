@@ -31,7 +31,7 @@ async function updateProduct(id: string, input: UpdateProductInput) {
   if (!existing) {
     throw new AppError(404, "Product not found");
   }
-  return menuRepository.updateProduct(id, input);
+  return menuRepository.updateProduct(id, input as any);
 }
 
 async function deleteProduct(id: string) {

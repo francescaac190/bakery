@@ -10,6 +10,14 @@ export const createCategorySchema = z.object({
   imageUrl: z.string().url().optional(),
 });
 
+const variantSchema = z.object({
+  id: z.string().trim().min(1).optional(),
+  label: z.string().trim().min(1).max(80),
+  priceCents: z.number().int().positive(),
+  sortOrder: z.number().int().default(0),
+  isActive: z.boolean().default(true),
+});
+
 export const createProductSchema = z.object({
   name: z.string().trim().min(1).max(120),
   description: z.string().trim().max(500).optional(),
@@ -19,6 +27,7 @@ export const createProductSchema = z.object({
   isActive: z.boolean().default(true),
   isCustom: z.boolean().default(false),
   categoryId: z.string().trim().optional(),
+  variants: z.array(variantSchema).optional(),
 });
 
 export const updateProductSchema = z.object({
@@ -30,6 +39,7 @@ export const updateProductSchema = z.object({
   isActive: z.boolean().optional(),
   isCustom: z.boolean().optional(),
   categoryId: z.string().trim().nullish(),
+  variants: z.array(variantSchema).optional(),
 });
 
 export const updateCategorySchema = z.object({

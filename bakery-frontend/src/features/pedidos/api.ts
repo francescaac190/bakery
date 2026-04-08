@@ -60,9 +60,10 @@ export async function submitOrder(
     pickupAt: delivery.pickupAt || undefined,
     deliveryAddress: delivery.deliveryAddress || undefined,
     notes: delivery.notes || undefined,
-    items: cartItems.map(({ product, quantity }) => ({
+    items: cartItems.map(({ product, quantity, variantId }) => ({
       productId: product.id,
       quantity,
+      ...(variantId ? { variantId } : {}),
     })),
     customCake: customCake
       ? {

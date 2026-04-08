@@ -26,9 +26,9 @@ function CartIcon({ className }: { className?: string }) {
 type CartProps = {
   items: CartItem[];
   customCake: CustomCakeDetails | null;
-  onIncrement: (productId: string) => void;
-  onDecrement: (productId: string) => void;
-  onRemove: (productId: string) => void;
+  onIncrement: (cartKey: string) => void;
+  onDecrement: (cartKey: string) => void;
+  onRemove: (cartKey: string) => void;
   onEditCustomCake: () => void;
   onRemoveCustomCake: () => void;
 };
@@ -46,9 +46,12 @@ export function Cart({
   const navigate = useNavigate();
 
   const total = items.reduce(
-    (sum, item) => sum + item.product.priceCents * item.quantity,
+    (sum, item) => sum + (item.variantPriceCents ?? item.product.priceCents) * item.quantity,
     0,
   );
+
+  const getCartKey = (item: CartItem) =>
+    item.variantId ? `${item.product.id}:${item.variantId}` : item.product.id;
   const currency = items[0]?.product.currency ?? "BOB";
   const totalItems =
     items.reduce((sum, i) => sum + i.quantity, 0) + (customCake ? 1 : 0);
@@ -113,59 +116,68 @@ export function Cart({
               <>
                 <div className="max-h-80 overflow-y-auto divide-y divide-background5">
                   {/* Regular items */}
-                  {items.map(({ product, quantity }) => (
-                    <div
-                      key={product.id}
-                      className="flex items-center gap-3 px-5 py-3"
-                    >
-                      <img
-                        src={product.imageUrl || productPlaceholder}
-                        alt={product.name}
-                        onError={(e) => {
-                          e.currentTarget.src = productPlaceholder;
-                        }}
-                        className="h-12 w-12 flex-shrink-0 rounded-xl object-cover"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-mono text-sm font-semibold text-text-heading">
-                          {product.name}
-                        </p>
-                        <p className="font-mono text-xs text-text-muted">
-                          {currency}. {(product.priceCents / 100).toFixed(2)}{" "}
-                          c/u
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => onDecrement(product.id)}
-                          className="flex h-6 w-6 items-center justify-center rounded-full border border-border-card font-mono text-sm text-text-muted transition-colors hover:border-primary hover:bg-background5 hover:text-primary"
-                          aria-label="Disminuir"
-                        >
-                          −
-                        </button>
-                        <span className="w-5 text-center font-mono text-sm font-bold text-text-heading">
-                          {quantity}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => onIncrement(product.id)}
-                          className="flex h-6 w-6 items-center justify-center rounded-full border border-border-card font-mono text-sm text-primary transition-colors hover:bg-background5"
-                          aria-label="Aumentar"
-                        >
-                          +
-                        </button>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => onRemove(product.id)}
-                        className="ml-1 flex h-6 w-6 items-center justify-center rounded-full font-mono text-xs text-text-muted transition-colors hover:bg-red-50 hover:text-red-400"
-                        aria-label="Eliminar"
+                  {items.map((item) => {
+                    const key = getCartKey(item);
+                    const unitPrice = item.variantPriceCents ?? item.product.priceCents;
+                    return (
+                      <div
+                        key={key}
+                        className="flex items-center gap-3 px-5 py-3"
                       >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
+                        <img
+                          src={item.product.imageUrl || productPlaceholder}
+                          alt={item.product.name}
+                          onError={(e) => {
+                            e.currentTarget.src = productPlaceholder;
+                          }}
+                          className="h-12 w-12 flex-shrink-0 rounded-xl object-cover"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-mono text-sm font-semibold text-text-heading">
+                            {item.product.name}
+                          </p>
+                          {item.variantLabel && (
+                            <p className="font-mono text-xs text-rose-400">
+                              {item.variantLabel}
+                            </p>
+                          )}
+                          <p className="font-mono text-xs text-text-muted">
+                            {currency}. {(unitPrice / 100).toFixed(2)}{" "}
+                            c/u
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => onDecrement(key)}
+                            className="flex h-6 w-6 items-center justify-center rounded-full border border-border-card font-mono text-sm text-text-muted transition-colors hover:border-primary hover:bg-background5 hover:text-primary"
+                            aria-label="Disminuir"
+                          >
+                            −
+                          </button>
+                          <span className="w-5 text-center font-mono text-sm font-bold text-text-heading">
+                            {item.quantity}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => onIncrement(key)}
+                            className="flex h-6 w-6 items-center justify-center rounded-full border border-border-card font-mono text-sm text-primary transition-colors hover:bg-background5"
+                            aria-label="Aumentar"
+                          >
+                            +
+                          </button>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => onRemove(key)}
+                          className="ml-1 flex h-6 w-6 items-center justify-center rounded-full font-mono text-xs text-text-muted transition-colors hover:bg-red-50 hover:text-red-400"
+                          aria-label="Eliminar"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    );
+                  })}
 
                   {/* Custom cake row */}
                   {customCake && (

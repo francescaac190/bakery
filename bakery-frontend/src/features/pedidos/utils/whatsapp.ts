@@ -47,10 +47,11 @@ export function buildWhatsAppMessage({
   if (cartItems.length > 0) {
     lines.push("");
     lines.push("🛒 *Productos:*");
-    for (const { product, quantity } of cartItems) {
-      const price = (product.priceCents / 100).toFixed(2);
+    for (const { product, quantity, variantLabel, variantPriceCents } of cartItems) {
+      const price = ((variantPriceCents ?? product.priceCents) / 100).toFixed(2);
+      const variantStr = variantLabel ? ` (${variantLabel})` : "";
       lines.push(
-        `• ${quantity}x ${product.name} — ${product.currency}. ${price}`,
+        `• ${quantity}x ${product.name}${variantStr} — ${product.currency}. ${price}`,
       );
     }
   }
@@ -105,7 +106,8 @@ export function buildWhatsAppMessage({
 
   if (cartItems.length > 0) {
     const total = cartItems.reduce(
-      (sum, { product, quantity }) => sum + product.priceCents * quantity,
+      (sum, { product, quantity, variantPriceCents }) =>
+        sum + (variantPriceCents ?? product.priceCents) * quantity,
       0,
     );
     const currency = cartItems[0].product.currency;

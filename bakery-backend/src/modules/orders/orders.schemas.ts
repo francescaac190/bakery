@@ -33,6 +33,7 @@ export const createOrderSchema = z
         z.object({
           productId: z.string().trim().min(1),
           quantity: z.number().int().positive(),
+          variantId: z.string().trim().min(1).optional(),
           notes: z.string().trim().max(300).optional(),
         }),
       )

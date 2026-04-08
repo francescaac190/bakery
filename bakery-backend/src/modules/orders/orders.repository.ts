@@ -9,6 +9,8 @@ type CreateOrderWithPricesInput = Omit<CreateOrderInput, "items"> & {
     notes?: string;
     unitPriceCents: number;
     currency: string;
+    variantId?: string;
+    variantLabel?: string;
   }>;
   totalCents: number;
 };
@@ -22,6 +24,9 @@ async function findActiveProductsByIds(productIds: string[]) {
     where: {
       id: { in: productIds },
       isActive: true,
+    },
+    include: {
+      variants: { where: { isActive: true } },
     },
   });
 }
@@ -61,6 +66,8 @@ async function createOrderWithItems(input: CreateOrderWithPricesInput) {
           unitPriceCents: item.unitPriceCents,
           currency: item.currency,
           notes: item.notes,
+          variantId: item.variantId ?? null,
+          variantLabel: item.variantLabel ?? null,
         })),
       });
     }

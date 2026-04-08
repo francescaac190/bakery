@@ -85,11 +85,16 @@ export function ProductsList() {
                   </span>
                 ) : (
                   <div className="inline-flex items-baseline gap-0.5 self-start rounded-full bg-rose-50 px-2.5 py-0.5 sm:px-3 sm:py-1">
+                    {(product.variants?.length ?? 0) > 0 && (
+                      <span className="text-xs text-rose-400 mr-0.5">Desde</span>
+                    )}
                     <span className="text-xs font-semibold text-rose-400">
                       {product.currency}.
                     </span>
                     <span className="text-base sm:text-lg font-bold text-rose-600">
-                      {(product.priceCents / 100).toFixed(2)}
+                      {((product.variants?.length
+                        ? Math.min(...product.variants.map(v => v.priceCents))
+                        : product.priceCents) / 100).toFixed(2)}
                     </span>
                   </div>
                 )}
