@@ -1,4 +1,5 @@
 import { prisma } from "../../db/prisma";
+import { generateDisplayId } from "../../shared/utils/displayId";
 import type { CreateOrderInput } from "./orders.types";
 
 type CreateOrderWithPricesInput = Omit<CreateOrderInput, "items"> & {
@@ -27,8 +28,11 @@ async function findActiveProductsByIds(productIds: string[]) {
 
 async function createOrderWithItems(input: CreateOrderWithPricesInput) {
   return prisma.$transaction(async (tx: any) => {
+    const displayId = await generateDisplayId(tx);
+
     const order = await tx.order.create({
       data: {
+        displayId,
         fulfillmentType: input.fulfillmentType,
         customerName: input.customerName,
         customerPhone: input.customerPhone,
@@ -37,6 +41,14 @@ async function createOrderWithItems(input: CreateOrderWithPricesInput) {
         deliveryAddress: input.deliveryAddress,
         notes: input.notes,
         totalCents: input.totalCents,
+      },
+    });
+
+    await tx.orderStatusLog.create({
+      data: {
+        orderId: order.id,
+        status: "PENDING",
+        changedBy: null,
       },
     });
 
@@ -83,6 +95,7 @@ async function createOrderWithItems(input: CreateOrderWithPricesInput) {
           },
         },
         customCakeRequest: true,
+        statusLogs: { orderBy: { createdAt: "asc" } },
       },
     } as any);
   });
@@ -98,6 +111,7 @@ async function findOrderById(orderId: string) {
         },
       },
       customCakeRequest: true,
+      statusLogs: { orderBy: { createdAt: "asc" } },
     },
   } as any);
 }

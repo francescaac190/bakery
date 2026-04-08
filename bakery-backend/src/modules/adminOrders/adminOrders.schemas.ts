@@ -2,10 +2,11 @@ import { z } from "zod";
 
 const statusEnum = z.enum([
   "PENDING",
-  "CONFIRMED",
+  "APPROVED",
   "IN_PROGRESS",
   "READY",
-  "COMPLETED",
+  "DELIVERED",
+  "PICKED_UP",
   "CANCELLED",
 ]);
 

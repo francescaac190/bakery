@@ -51,6 +51,7 @@ async function createOrder(
 
   return {
     orderId: order.id,
+    displayId: (order as any).displayId,
     status: order.status,
     totalCents: order.totalCents,
     estimatedReadyAt: order.pickupAt,

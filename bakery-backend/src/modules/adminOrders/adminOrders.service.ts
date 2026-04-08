@@ -1,9 +1,10 @@
 type OrderStatus =
   | "PENDING"
-  | "CONFIRMED"
+  | "APPROVED"
   | "IN_PROGRESS"
   | "READY"
-  | "COMPLETED"
+  | "DELIVERED"
+  | "PICKED_UP"
   | "CANCELLED";
 import { AppError } from "../../shared/errors/app-error";
 import { parsePagination } from "../../shared/utils/pagination";
@@ -18,11 +19,12 @@ type ListOrdersInput = {
 };
 
 const allowedStatusTransitions: Record<OrderStatus, OrderStatus[]> = {
-  PENDING: ["CONFIRMED", "CANCELLED"],
-  CONFIRMED: ["IN_PROGRESS", "CANCELLED"],
+  PENDING: ["APPROVED", "CANCELLED"],
+  APPROVED: ["IN_PROGRESS", "CANCELLED"],
   IN_PROGRESS: ["READY", "CANCELLED"],
-  READY: ["COMPLETED", "CANCELLED"],
-  COMPLETED: [],
+  READY: ["DELIVERED", "PICKED_UP", "CANCELLED"],
+  DELIVERED: [],
+  PICKED_UP: [],
   CANCELLED: [],
 };
 

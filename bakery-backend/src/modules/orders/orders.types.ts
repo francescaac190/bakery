@@ -1,10 +1,11 @@
 export type FulfillmentType = "PICKUP" | "DELIVERY";
 export type OrderStatus =
   | "PENDING"
-  | "CONFIRMED"
+  | "APPROVED"
   | "IN_PROGRESS"
   | "READY"
-  | "COMPLETED"
+  | "DELIVERED"
+  | "PICKED_UP"
   | "CANCELLED";
 
 export type CreateOrderInput = {
@@ -37,6 +38,7 @@ export type CreateOrderInput = {
 
 export type CreateOrderResult = {
   orderId: string;
+  displayId: string;
   status: OrderStatus;
   totalCents: number;
   estimatedReadyAt: Date | null;

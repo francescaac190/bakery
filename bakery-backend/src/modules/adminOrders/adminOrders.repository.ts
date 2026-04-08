@@ -2,10 +2,11 @@ import { prisma } from "../../db/prisma";
 
 type OrderStatus =
   | "PENDING"
-  | "CONFIRMED"
+  | "APPROVED"
   | "IN_PROGRESS"
   | "READY"
-  | "COMPLETED"
+  | "DELIVERED"
+  | "PICKED_UP"
   | "CANCELLED";
 
 type ListOrdersFilters = {
