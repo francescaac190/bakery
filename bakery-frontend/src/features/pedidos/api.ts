@@ -113,11 +113,7 @@ export async function fetchOrder(orderId: string): Promise<OrderTrackingData> {
   const res = await fetch(`${apiUrl}/orders/${orderId}`);
   if (!res.ok) {
     const json = await res.json().catch(() => ({}));
-    throw new HttpError(
-      res.status,
-      json,
-      (json as any)?.error?.message ?? "Pedido no encontrado",
-    );
+    throw new HttpError(res.status, json);
   }
   const json = await res.json();
   return (json as { data: OrderTrackingData }).data;

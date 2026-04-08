@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Product } from "../types";
 
 export type CartItem = {
@@ -34,13 +34,54 @@ type CartContextValue = {
   clearCart: () => void;
 };
 
+const CART_KEY = "bakery_cart";
+const CUSTOM_CAKE_KEY = "bakery_custom_cake";
+
+function loadCartFromStorage(): CartItem[] {
+  try {
+    const raw = localStorage.getItem(CART_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function loadCustomCakeFromStorage(): CustomCakeDetails | null {
+  try {
+    const raw = localStorage.getItem(CUSTOM_CAKE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return {
+      ...parsed,
+      inspirationImageFile: null,
+      inspirationImagePreview: null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>(loadCartFromStorage);
   const [customCake, setCustomCakeState] = useState<CustomCakeDetails | null>(
-    null,
+    loadCustomCakeFromStorage,
   );
+
+  // Sync cart to localStorage
+  useEffect(() => {
+    localStorage.setItem(CART_KEY, JSON.stringify(cartItems));
+  }, [cartItems]);
+
+  useEffect(() => {
+    if (customCake) {
+      const { inspirationImageFile, inspirationImagePreview, ...serializable } = customCake;
+      localStorage.setItem(CUSTOM_CAKE_KEY, JSON.stringify(serializable));
+    } else {
+      localStorage.removeItem(CUSTOM_CAKE_KEY);
+    }
+  }, [customCake]);
 
   // Cart key uniquely identifies product + variant combo
   const getCartKey = (productId: string, variantId?: string) =>
@@ -109,12 +150,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = () => {
     setCartItems([]);
+    localStorage.removeItem(CART_KEY);
     setCustomCakeState((prev) => {
       if (prev?.inspirationImagePreview) {
         URL.revokeObjectURL(prev.inspirationImagePreview);
       }
       return null;
     });
+    localStorage.removeItem(CUSTOM_CAKE_KEY);
+    sessionStorage.removeItem("lastOrderId");
   };
 
   return (
