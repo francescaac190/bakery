@@ -5,5 +5,11 @@ import { adminOrdersController } from "./adminOrders.controller";
 export const adminOrdersRouter = Router();
 
 adminOrdersRouter.get("/", adminOrdersController.listOrders);
+adminOrdersRouter.get("/:id", adminOrdersController.getOrderById);
 adminOrdersRouter.patch("/:id/status", adminOrdersController.updateOrderStatus);
-adminOrdersRouter.delete("/:id", requireRole("SUPER_ADMIN"), adminOrdersController.deleteOrder);
+adminOrdersRouter.patch("/:id/notes", adminOrdersController.updateAdminNotes);
+adminOrdersRouter.delete(
+  "/:id",
+  requireRole("SUPER_ADMIN"),
+  adminOrdersController.deleteOrder,
+);
