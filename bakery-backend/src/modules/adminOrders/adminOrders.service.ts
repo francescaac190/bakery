@@ -106,6 +106,36 @@ async function updateAdminNotes(orderId: string, adminNotes: string | null) {
   return adminOrdersRepository.updateAdminNotes(orderId, adminNotes);
 }
 
+async function setCustomCakePrice(
+  orderId: string,
+  priceCents: number,
+  pricedBy: string,
+) {
+  const order = await adminOrdersRepository.findOrderById(orderId);
+  if (!order) {
+    throw new AppError(404, "Order not found");
+  }
+  const customCake = (order as any).customCakeRequest;
+  if (!customCake) {
+    throw new AppError(409, "Order does not have a custom cake request");
+  }
+
+  const itemsTotal = ((order as any).items ?? []).reduce(
+    (sum: number, item: any) => sum + item.quantity * item.unitPriceCents,
+    0,
+  );
+  const newTotalCents = itemsTotal + priceCents;
+
+  await adminOrdersRepository.setCustomCakePrice(
+    orderId,
+    priceCents,
+    pricedBy,
+    newTotalCents,
+  );
+
+  return { orderId, finalPriceCents: priceCents, totalCents: newTotalCents };
+}
+
 async function deleteOrder(orderId: string) {
   const existing = await adminOrdersRepository.findOrderById(orderId);
   if (!existing) {
@@ -119,5 +149,6 @@ export const adminOrdersService = {
   getOrderById,
   updateOrderStatus,
   updateAdminNotes,
+  setCustomCakePrice,
   deleteOrder,
 };

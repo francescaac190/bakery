@@ -8,6 +8,7 @@ adminOrdersRouter.get("/", adminOrdersController.listOrders);
 adminOrdersRouter.get("/:id", adminOrdersController.getOrderById);
 adminOrdersRouter.patch("/:id/status", adminOrdersController.updateOrderStatus);
 adminOrdersRouter.patch("/:id/notes", adminOrdersController.updateAdminNotes);
+adminOrdersRouter.patch("/:id/custom-cake-price", adminOrdersController.setCustomCakePrice);
 adminOrdersRouter.delete(
   "/:id",
   requireRole("SUPER_ADMIN"),

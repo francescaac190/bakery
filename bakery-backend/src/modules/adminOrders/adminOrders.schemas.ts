@@ -31,4 +31,8 @@ export const updateAdminNotesBodySchema = z.object({
   adminNotes: z.string().max(2000).nullable(),
 });
 
+export const setCustomCakePriceBodySchema = z.object({
+  priceCents: z.number().int().positive(),
+});
+
 export const updateOrderStatusParamsSchema = orderIdParamsSchema;

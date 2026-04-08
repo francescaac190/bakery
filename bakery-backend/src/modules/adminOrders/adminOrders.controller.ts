@@ -5,6 +5,7 @@ import {
   orderIdParamsSchema,
   updateOrderStatusBodySchema,
   updateAdminNotesBodySchema,
+  setCustomCakePriceBodySchema,
 } from "./adminOrders.schemas";
 import { adminOrdersService } from "./adminOrders.service";
 
@@ -42,6 +43,17 @@ async function updateAdminNotes(req: Request, res: Response) {
   return sendSuccess(res, result);
 }
 
+async function setCustomCakePrice(req: Request, res: Response) {
+  const params = orderIdParamsSchema.parse(req.params);
+  const body = setCustomCakePriceBodySchema.parse(req.body);
+  const result = await adminOrdersService.setCustomCakePrice(
+    params.id,
+    body.priceCents,
+    req.admin!.id,
+  );
+  return sendSuccess(res, result);
+}
+
 async function deleteOrder(req: Request, res: Response) {
   const params = orderIdParamsSchema.parse(req.params);
   await adminOrdersService.deleteOrder(params.id);
@@ -53,5 +65,6 @@ export const adminOrdersController = {
   getOrderById,
   updateOrderStatus,
   updateAdminNotes,
+  setCustomCakePrice,
   deleteOrder,
 };

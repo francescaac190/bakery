@@ -46,7 +46,7 @@ async function listOrders(filters: ListOrdersFilters) {
       where,
       include: {
         items: { include: { product: { select: { name: true } } } },
-        customCakeRequest: { select: { id: true } },
+        customCakeRequest: { select: { id: true, finalPriceCents: true } },
       },
       orderBy: { createdAt: "desc" },
       skip: filters.skip,
@@ -96,6 +96,28 @@ async function updateAdminNotes(orderId: string, adminNotes: string | null) {
   });
 }
 
+async function setCustomCakePrice(
+  orderId: string,
+  priceCents: number,
+  pricedBy: string,
+  newTotalCents: number,
+) {
+  return prisma.$transaction([
+    (prisma as any).customCakeRequest.update({
+      where: { orderId },
+      data: {
+        finalPriceCents: priceCents,
+        pricedAt: new Date(),
+        pricedBy,
+      },
+    }),
+    prisma.order.update({
+      where: { id: orderId },
+      data: { totalCents: newTotalCents },
+    }),
+  ]);
+}
+
 async function deleteOrder(orderId: string) {
   return prisma.order.delete({ where: { id: orderId } });
 }
@@ -105,5 +127,6 @@ export const adminOrdersRepository = {
   findOrderById,
   updateOrderStatus,
   updateAdminNotes,
+  setCustomCakePrice,
   deleteOrder,
 };

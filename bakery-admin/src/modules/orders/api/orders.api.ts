@@ -52,4 +52,11 @@ export const ordersApi = {
       headers: authHeaders(),
       body: JSON.stringify({ adminNotes }),
     }).then(res => parseJson<OrderDetail>(res)),
+
+  setCustomCakePrice: (id: string, priceCents: number): Promise<unknown> =>
+    fetch(`${BASE_URL}/${id}/custom-cake-price`, {
+      method: 'PATCH',
+      headers: authHeaders(),
+      body: JSON.stringify({ priceCents }),
+    }).then(res => parseJson<unknown>(res)),
 }

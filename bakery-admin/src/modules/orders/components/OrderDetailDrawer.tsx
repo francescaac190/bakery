@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { X, Save, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/cn'
-import { useOrder, useUpdateOrderStatus, useUpdateAdminNotes } from '../hooks/useOrders'
+import { toast } from 'react-hot-toast'
+import { useOrder, useUpdateOrderStatus, useUpdateAdminNotes, useSetCustomCakePrice } from '../hooks/useOrders'
 import {
   STATUS_LABELS,
   STATUS_COLORS,
@@ -175,7 +176,7 @@ export function OrderDetailDrawer({ orderId, onClose }: Props) {
 
               {/* Custom cake */}
               {order.customCakeRequest && (
-                <CustomCakeSection cake={order.customCakeRequest} currency={order.currency} />
+                <CustomCakeSection cake={order.customCakeRequest} currency={order.currency} orderId={order.id} />
               )}
 
               {/* Delivery / Pickup */}
@@ -331,7 +332,11 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   )
 }
 
-function CustomCakeSection({ cake, currency }: { cake: CustomCakeRequest; currency: string }) {
+function CustomCakeSection({ cake, currency, orderId }: { cake: CustomCakeRequest; currency: string; orderId: string }) {
+  const [priceInput, setPriceInput] = useState('')
+  const setCakePriceMutation = useSetCustomCakePrice()
+  const hasUnpricedCake = cake.finalPriceCents == null
+
   const specs = [
     cake.servings && { label: 'Porciones', value: String(cake.servings) },
     cake.size && { label: 'Tamaño', value: cake.size },
@@ -345,8 +350,37 @@ function CustomCakeSection({ cake, currency }: { cake: CustomCakeRequest; curren
     cake.finalPriceCents != null && { label: 'Precio final', value: formatPrice(cake.finalPriceCents, currency) },
   ].filter(Boolean) as { label: string; value: string }[]
 
+  function handleSetPrice() {
+    const cents = Math.round(parseFloat(priceInput) * 100)
+    if (isNaN(cents) || cents <= 0) { toast.error('Ingresa un precio válido'); return }
+    setCakePriceMutation.mutate({ id: orderId, priceCents: cents })
+  }
+
   return (
     <Section title="Torta personalizada">
+      {hasUnpricedCake && (
+        <div className="bg-amber-50 border border-amber-200 rounded-md px-3 py-3 mb-3">
+          <p className="text-xs text-amber-700 mb-2">⚠ Esta torta no tiene precio asignado</p>
+          <div className="flex gap-2">
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="Precio (BOB)"
+              value={priceInput}
+              onChange={(e) => setPriceInput(e.target.value)}
+              className="flex-1 border border-amber-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+            <button
+              onClick={handleSetPrice}
+              disabled={setCakePriceMutation.isPending}
+              className="px-3 py-1 text-xs rounded bg-primary text-white hover:bg-primary/90 disabled:opacity-50"
+            >
+              {setCakePriceMutation.isPending ? '...' : 'Establecer'}
+            </button>
+          </div>
+        </div>
+      )}
       <div className="space-y-1">
         {specs.map(s => (
           <InfoRow key={s.label} label={s.label} value={s.value} />

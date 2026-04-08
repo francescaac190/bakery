@@ -53,3 +53,16 @@ export function useUpdateAdminNotes() {
     onError: (err: Error) => toast.error(err.message ?? 'Ha ocurrido un error'),
   })
 }
+
+export function useSetCustomCakePrice() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, priceCents }: { id: string; priceCents: number }) =>
+      ordersApi.setCustomCakePrice(id, priceCents),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ORDERS_KEY })
+      toast.success('Precio asignado')
+    },
+    onError: (err: Error) => toast.error(err.message ?? 'Error al asignar precio'),
+  })
+}

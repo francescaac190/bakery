@@ -108,6 +108,9 @@ model CustomCakeRequest {
   allergies       String?
   inspirationImage String?
   budgetCents     Int?
+  finalPriceCents  Int?
+  pricedAt         DateTime?
+  pricedBy         String?
   createdAt       DateTime @default(now())
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
