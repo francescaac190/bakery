@@ -8,10 +8,11 @@ datasource db {
 
 enum OrderStatus {
   PENDING
-  CONFIRMED
+  APPROVED
   IN_PROGRESS
   READY
-  COMPLETED
+  DELIVERED
+  PICKED_UP
   CANCELLED
 }
 
@@ -64,6 +65,10 @@ model Order {
 
   notes String?
 
+  displayId  String  @unique
+  adminNotes String?
+  statusLogs OrderStatusLog[]
+
   items OrderItem[]
   customCakeRequest CustomCakeRequest?
 
@@ -75,6 +80,18 @@ model Order {
 
   @@index([status])
   @@index([createdAt])
+}
+
+model OrderStatusLog {
+  id        String      @id @default(cuid())
+  orderId   String
+  status    OrderStatus
+  changedBy String?
+  createdAt DateTime    @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
 }
 
 model CustomCakeRequest {
