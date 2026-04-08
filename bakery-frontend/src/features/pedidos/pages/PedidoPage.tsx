@@ -48,6 +48,8 @@ export function PedidoPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [successOrderId, setSuccessOrderId] = useState<string | null>(null);
+  const [successDisplayId, setSuccessDisplayId] = useState<string | null>(null);
+  const [pendingWhatsAppMessage, setPendingWhatsAppMessage] = useState<string | null>(null);
 
   // Redirect if cart is empty (but not after a successful order)
   useEffect(() => {
@@ -55,6 +57,15 @@ export function PedidoPage() {
       navigate("/", { replace: true });
     }
   }, [cartItems, customCake, navigate, successOrderId]);
+
+  // Double-submission guard: redirect to tracking if order was already placed
+  useEffect(() => {
+    const lastOrderId = sessionStorage.getItem("lastOrderId");
+    if (lastOrderId && cartItems.length === 0 && !customCake) {
+      navigate(`/seguimiento/${lastOrderId}`, { replace: true });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const minDate = getMinDate();
 
@@ -166,7 +177,9 @@ export function PedidoPage() {
 
       clearCart();
       setSuccessOrderId(result.orderId);
-      openWhatsApp(message);
+      setSuccessDisplayId(result.displayId ?? null);
+      setPendingWhatsAppMessage(message);
+      sessionStorage.setItem("lastOrderId", result.orderId);
     } catch (err) {
       setSubmitError(
         `Hubo un problema al registrar tu pedido. Por favor intenta de nuevo.\n ${err}`,
@@ -183,26 +196,44 @@ export function PedidoPage() {
         <div className="max-w-sm w-full bg-white rounded-2xl border border-border-card p-8 text-center">
           <div className="text-5xl mb-4">🎂</div>
           <h1 className="font-mono text-2xl font-bold text-text-heading mb-2">
-            ¡Pedido enviado!
+            ¡Tu pedido ha sido registrado!
           </h1>
           <p className="font-mono text-sm text-text-muted mb-4">
-            Se abrió WhatsApp con los detalles de tu pedido. Te contactaremos
-            pronto para confirmar.
+            Haz click en el boton para enviarnos los detalles por WhatsApp.
           </p>
-          <div className="bg-background5 rounded-xl p-3 mb-6">
+          <div className="bg-background5 rounded-xl p-3 mb-4">
             <p className="font-mono text-xs text-text-muted">
-              Número de pedido
+              Numero de pedido
             </p>
             <p className="font-mono text-sm font-bold text-text-heading">
-              #{successOrderId.slice(-6).toUpperCase()}
+              #{successDisplayId ?? successOrderId.slice(-6).toUpperCase()}
             </p>
           </div>
+
+          <a
+            href={`/seguimiento/${successOrderId}`}
+            className="block text-sm text-primary hover:underline font-mono mb-4"
+          >
+            Ver estado de tu pedido &rarr;
+          </a>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (pendingWhatsAppMessage) {
+                openWhatsApp(pendingWhatsAppMessage);
+              }
+            }}
+            className="app-button w-full mb-3"
+          >
+            Enviar por WhatsApp
+          </button>
           <button
             type="button"
             onClick={() => navigate("/")}
-            className="app-button w-full"
+            className="app-button-ghost w-full"
           >
-            Volver al menú
+            Volver al menu
           </button>
         </div>
       </div>

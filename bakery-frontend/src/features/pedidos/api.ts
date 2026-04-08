@@ -4,9 +4,44 @@ import type { ContactInfo, DeliveryInfo } from "./utils/whatsapp";
 
 export type SubmitOrderResult = {
   orderId: string;
+  displayId?: string;
   status: string;
   totalCents: number;
   inspirationImageUrl?: string;
+};
+
+export type OrderTrackingData = {
+  id: string;
+  displayId: string;
+  status: string;
+  fulfillmentType: "PICKUP" | "DELIVERY";
+  customerName: string;
+  deliveryAddress?: string | null;
+  pickupAt?: string | null;
+  totalCents: number;
+  currency: string;
+  createdAt: string;
+  items: Array<{
+    id: string;
+    quantity: number;
+    unitPriceCents: number;
+    currency: string;
+    variantLabel?: string | null;
+    product: { name: string };
+  }>;
+  customCakeRequest?: {
+    servings?: number | null;
+    flavor?: string | null;
+    filling?: string | null;
+    frosting?: string | null;
+    messageOnCake?: string | null;
+    finalPriceCents?: number | null;
+  } | null;
+  statusLogs: Array<{
+    id: string;
+    status: string;
+    createdAt: string;
+  }>;
 };
 
 export async function submitOrder(
@@ -65,10 +100,26 @@ export async function submitOrder(
 
   return {
     orderId: result.orderId,
+    displayId: result.displayId,
     status: result.status,
     totalCents: result.totalCents,
     inspirationImageUrl: result.inspirationImageUrl,
   };
+}
+
+export async function fetchOrder(orderId: string): Promise<OrderTrackingData> {
+  const apiUrl = import.meta.env.VITE_API_URL as string;
+  const res = await fetch(`${apiUrl}/orders/${orderId}`);
+  if (!res.ok) {
+    const json = await res.json().catch(() => ({}));
+    throw new HttpError(
+      res.status,
+      json,
+      (json as any)?.error?.message ?? "Pedido no encontrado",
+    );
+  }
+  const json = await res.json();
+  return (json as { data: OrderTrackingData }).data;
 }
 
 // Map chip label "20 personas" → 20 (int), "Mini (2 personas)" → 2
