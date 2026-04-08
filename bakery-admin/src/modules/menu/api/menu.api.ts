@@ -9,7 +9,27 @@ import type {
   UpdateProductInput,
 } from '../types'
 
-const BASE_URL = `${import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:1313/api/v1'}/admin/menu`
+const ADMIN_BASE = `${import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:1313/api/v1'}/admin`
+const BASE_URL = `${ADMIN_BASE}/menu`
+
+export async function uploadImage(file: File): Promise<string> {
+  const token = useAuthStore.getState().token
+  if (!token) throw new Error('Not authenticated')
+  const formData = new FormData()
+  formData.append('file', file)
+  const res = await fetch(`${ADMIN_BASE}/upload`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+  })
+  const json = await res.json().catch(() => ({}))
+  if (!res.ok) {
+    throw new Error(
+      (json as { error?: { message?: string } })?.error?.message ?? `Error ${res.status}`
+    )
+  }
+  return (json as { data: { url: string } }).data.url
+}
 
 function authHeaders() {
   const token = useAuthStore.getState().token
