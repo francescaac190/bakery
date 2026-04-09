@@ -1,9 +1,12 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Product } from "../types";
 
 export type CartItem = {
   product: Product;
   quantity: number;
+  variantId?: string;
+  variantLabel?: string;
+  variantPriceCents?: number;
 };
 
 export type CustomCakeDetails = {
@@ -22,59 +25,114 @@ export type CustomCakeDetails = {
 type CartContextValue = {
   cartItems: CartItem[];
   customCake: CustomCakeDetails | null;
-  addToCart: (product: Product) => void;
-  increment: (productId: string) => void;
-  decrement: (productId: string) => void;
-  remove: (productId: string) => void;
+  addToCart: (product: Product, variant?: { id: string; label: string; priceCents: number }) => void;
+  increment: (cartKey: string) => void;
+  decrement: (cartKey: string) => void;
+  remove: (cartKey: string) => void;
   setCustomCake: (details: CustomCakeDetails) => void;
   removeCustomCake: () => void;
   clearCart: () => void;
 };
 
+const CART_KEY = "bakery_cart";
+const CUSTOM_CAKE_KEY = "bakery_custom_cake";
+
+function loadCartFromStorage(): CartItem[] {
+  try {
+    const raw = localStorage.getItem(CART_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function loadCustomCakeFromStorage(): CustomCakeDetails | null {
+  try {
+    const raw = localStorage.getItem(CUSTOM_CAKE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return {
+      ...parsed,
+      inspirationImageFile: null,
+      inspirationImagePreview: null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>(loadCartFromStorage);
   const [customCake, setCustomCakeState] = useState<CustomCakeDetails | null>(
-    null,
+    loadCustomCakeFromStorage,
   );
 
-  const addToCart = (product: Product) =>
+  // Sync cart to localStorage
+  useEffect(() => {
+    localStorage.setItem(CART_KEY, JSON.stringify(cartItems));
+  }, [cartItems]);
+
+  useEffect(() => {
+    if (customCake) {
+      const { inspirationImageFile, inspirationImagePreview, ...serializable } = customCake;
+      localStorage.setItem(CUSTOM_CAKE_KEY, JSON.stringify(serializable));
+    } else {
+      localStorage.removeItem(CUSTOM_CAKE_KEY);
+    }
+  }, [customCake]);
+
+  // Cart key uniquely identifies product + variant combo
+  const getCartKey = (productId: string, variantId?: string) =>
+    variantId ? `${productId}:${variantId}` : productId;
+
+  const itemCartKey = (item: CartItem) =>
+    getCartKey(item.product.id, item.variantId);
+
+  const addToCart = (product: Product, variant?: { id: string; label: string; priceCents: number }) =>
     setCartItems((prev) => {
-      const existing = prev.find((item) => item.product.id === product.id);
+      const key = getCartKey(product.id, variant?.id);
+      const existing = prev.find((item) => itemCartKey(item) === key);
       if (existing) {
         return prev.map((item) =>
-          item.product.id === product.id
+          itemCartKey(item) === key
             ? { ...item, quantity: item.quantity + 1 }
             : item,
         );
       }
-      return [...prev, { product, quantity: 1 }];
+      return [...prev, {
+        product,
+        quantity: 1,
+        variantId: variant?.id,
+        variantLabel: variant?.label,
+        variantPriceCents: variant?.priceCents,
+      }];
     });
 
-  const increment = (productId: string) =>
+  const increment = (cartKey: string) =>
     setCartItems((prev) =>
       prev.map((item) =>
-        item.product.id === productId
+        itemCartKey(item) === cartKey
           ? { ...item, quantity: item.quantity + 1 }
           : item,
       ),
     );
 
-  const decrement = (productId: string) =>
+  const decrement = (cartKey: string) =>
     setCartItems((prev) =>
       prev
         .map((item) =>
-          item.product.id === productId
+          itemCartKey(item) === cartKey
             ? { ...item, quantity: item.quantity - 1 }
             : item,
         )
         .filter((item) => item.quantity > 0),
     );
 
-  const remove = (productId: string) =>
+  const remove = (cartKey: string) =>
     setCartItems((prev) =>
-      prev.filter((item) => item.product.id !== productId),
+      prev.filter((item) => itemCartKey(item) !== cartKey),
     );
 
   const setCustomCake = (details: CustomCakeDetails) =>
@@ -92,12 +150,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = () => {
     setCartItems([]);
+    localStorage.removeItem(CART_KEY);
     setCustomCakeState((prev) => {
       if (prev?.inspirationImagePreview) {
         URL.revokeObjectURL(prev.inspirationImagePreview);
       }
       return null;
     });
+    localStorage.removeItem(CUSTOM_CAKE_KEY);
+    sessionStorage.removeItem("lastOrderId");
   };
 
   return (

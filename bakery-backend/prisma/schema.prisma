@@ -8,10 +8,11 @@ datasource db {
 
 enum OrderStatus {
   PENDING
-  CONFIRMED
+  APPROVED
   IN_PROGRESS
   READY
-  COMPLETED
+  DELIVERED
+  PICKED_UP
   CANCELLED
 }
 
@@ -45,9 +46,24 @@ model Product {
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
   orderItems OrderItem[]
+  variants   ProductVariant[]
 
   @@index([isActive])
   @@index([categoryId])
+}
+
+model ProductVariant {
+  id         String  @id @default(cuid())
+  productId  String
+  label      String
+  priceCents Int
+  sortOrder  Int     @default(0)
+  isActive   Boolean @default(true)
+
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+
+  @@index([productId])
 }
 
 model Order {
@@ -64,6 +80,10 @@ model Order {
 
   notes String?
 
+  displayId  String  @unique
+  adminNotes String?
+  statusLogs OrderStatusLog[]
+
   items OrderItem[]
   customCakeRequest CustomCakeRequest?
 
@@ -75,6 +95,18 @@ model Order {
 
   @@index([status])
   @@index([createdAt])
+}
+
+model OrderStatusLog {
+  id        String      @id @default(cuid())
+  orderId   String
+  status    OrderStatus
+  changedBy String?
+  createdAt DateTime    @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
 }
 
 model CustomCakeRequest {
@@ -91,6 +123,9 @@ model CustomCakeRequest {
   allergies       String?
   inspirationImage String?
   budgetCents     Int?
+  finalPriceCents  Int?
+  pricedAt         DateTime?
+  pricedBy         String?
   createdAt       DateTime @default(now())
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -106,6 +141,10 @@ model OrderItem {
   currency       String @default("BOB")
 
   notes String?
+
+  variantId    String?
+  variantLabel String?
+  variant      ProductVariant? @relation(fields: [variantId], references: [id])
 
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id])

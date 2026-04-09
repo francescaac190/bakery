@@ -5,6 +5,7 @@ import { ProductsPage } from "./features/products/pages/ProductsPage";
 import PersonalizaPage from "./features/products/pages/PersonalizaPage";
 import { ProductDetailPage } from "./features/products/pages/ProductDetailPage";
 import { PedidoPage } from "./features/pedidos/pages/PedidoPage";
+import { TrackingPage } from "./features/pedidos/pages/TrackingPage";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
             <Route path="/products/:id" element={<ProductDetailPage />} />
             <Route path="/personaliza" element={<PersonalizaPage />} />
             <Route path="/pedido" element={<PedidoPage />} />
+            <Route path="/seguimiento/:id" element={<TrackingPage />} />
           </Routes>
         </main>
       </CartProvider>

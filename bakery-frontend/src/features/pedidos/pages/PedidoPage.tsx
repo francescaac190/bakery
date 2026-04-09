@@ -48,6 +48,8 @@ export function PedidoPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [successOrderId, setSuccessOrderId] = useState<string | null>(null);
+  const [successDisplayId, setSuccessDisplayId] = useState<string | null>(null);
+  const [pendingWhatsAppMessage, setPendingWhatsAppMessage] = useState<string | null>(null);
 
   // Redirect if cart is empty (but not after a successful order)
   useEffect(() => {
@@ -56,10 +58,20 @@ export function PedidoPage() {
     }
   }, [cartItems, customCake, navigate, successOrderId]);
 
+  // Double-submission guard: redirect to tracking if order was already placed
+  useEffect(() => {
+    const lastOrderId = sessionStorage.getItem("lastOrderId");
+    if (lastOrderId && cartItems.length === 0 && !customCake) {
+      navigate(`/seguimiento/${lastOrderId}`, { replace: true });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const minDate = getMinDate();
 
   const subtotal = cartItems.reduce(
-    (sum, { product, quantity }) => sum + product.priceCents * quantity,
+    (sum, { product, quantity, variantPriceCents }) =>
+      sum + (variantPriceCents ?? product.priceCents) * quantity,
     0,
   );
   const currency = cartItems[0]?.product.currency ?? "BOB";
@@ -166,7 +178,9 @@ export function PedidoPage() {
 
       clearCart();
       setSuccessOrderId(result.orderId);
-      openWhatsApp(message);
+      setSuccessDisplayId(result.displayId ?? null);
+      setPendingWhatsAppMessage(message);
+      sessionStorage.setItem("lastOrderId", result.orderId);
     } catch (err) {
       setSubmitError(
         `Hubo un problema al registrar tu pedido. Por favor intenta de nuevo.\n ${err}`,
@@ -183,26 +197,44 @@ export function PedidoPage() {
         <div className="max-w-sm w-full bg-white rounded-2xl border border-border-card p-8 text-center">
           <div className="text-5xl mb-4">🎂</div>
           <h1 className="font-mono text-2xl font-bold text-text-heading mb-2">
-            ¡Pedido enviado!
+            ¡Tu pedido ha sido registrado!
           </h1>
           <p className="font-mono text-sm text-text-muted mb-4">
-            Se abrió WhatsApp con los detalles de tu pedido. Te contactaremos
-            pronto para confirmar.
+            Haz click en el boton para enviarnos los detalles por WhatsApp.
           </p>
-          <div className="bg-background5 rounded-xl p-3 mb-6">
+          <div className="bg-background5 rounded-xl p-3 mb-4">
             <p className="font-mono text-xs text-text-muted">
-              Número de pedido
+              Numero de pedido
             </p>
             <p className="font-mono text-sm font-bold text-text-heading">
-              #{successOrderId.slice(-6).toUpperCase()}
+              #{successDisplayId ?? successOrderId.slice(-6).toUpperCase()}
             </p>
           </div>
+
+          <a
+            href={`/seguimiento/${successOrderId}`}
+            className="block text-sm text-primary hover:underline font-mono mb-4"
+          >
+            Ver estado de tu pedido &rarr;
+          </a>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (pendingWhatsAppMessage) {
+                openWhatsApp(pendingWhatsAppMessage);
+              }
+            }}
+            className="app-button w-full mb-3"
+          >
+            Enviar por WhatsApp
+          </button>
           <button
             type="button"
             onClick={() => navigate("/")}
-            className="app-button w-full"
+            className="app-button-ghost w-full"
           >
-            Volver al menú
+            Volver al menu
           </button>
         </div>
       </div>
@@ -242,30 +274,37 @@ export function PedidoPage() {
             Resumen del pedido
           </h2>
 
-          {cartItems.map(({ product, quantity }) => (
-            <div
-              key={product.id}
-              className="flex items-center gap-3 py-2 border-b border-background5 last:border-0"
-            >
-              <img
-                src={product.imageUrl || productPlaceholder}
-                alt={product.name}
-                onError={(e) => {
-                  e.currentTarget.src = productPlaceholder;
-                }}
-                className="h-12 w-12 flex-shrink-0 rounded-xl object-cover"
-              />
-              <div className="flex-1 min-w-0">
-                <p className="font-mono text-sm font-semibold text-text-heading">
-                  {product.name}
+          {cartItems.map((item) => {
+            const unitPrice = item.variantPriceCents ?? item.product.priceCents;
+            const key = item.variantId ? `${item.product.id}:${item.variantId}` : item.product.id;
+            return (
+              <div
+                key={key}
+                className="flex items-center gap-3 py-2 border-b border-background5 last:border-0"
+              >
+                <img
+                  src={item.product.imageUrl || productPlaceholder}
+                  alt={item.product.name}
+                  onError={(e) => {
+                    e.currentTarget.src = productPlaceholder;
+                  }}
+                  className="h-12 w-12 flex-shrink-0 rounded-xl object-cover"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="font-mono text-sm font-semibold text-text-heading">
+                    {item.product.name}
+                  </p>
+                  {item.variantLabel && (
+                    <p className="font-mono text-xs text-rose-400">{item.variantLabel}</p>
+                  )}
+                  <p className="font-mono text-xs text-text-muted">x{item.quantity}</p>
+                </div>
+                <p className="font-mono text-sm font-bold text-text-heading">
+                  {currency}. {((unitPrice * item.quantity) / 100).toFixed(2)}
                 </p>
-                <p className="font-mono text-xs text-text-muted">x{quantity}</p>
               </div>
-              <p className="font-mono text-sm font-bold text-text-heading">
-                {currency}. {((product.priceCents * quantity) / 100).toFixed(2)}
-              </p>
-            </div>
-          ))}
+            );
+          })}
 
           {customCake && (
             <div className="mt-2 rounded-xl border border-border-card bg-background5 p-4">

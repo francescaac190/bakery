@@ -8,6 +8,12 @@ async function findCategoriesWithActiveProducts() {
       products: {
         where: { isActive: true },
         orderBy: { name: "asc" },
+        include: {
+          variants: {
+            where: { isActive: true },
+            orderBy: { sortOrder: "asc" },
+          },
+        },
       },
     },
   });
@@ -28,6 +34,10 @@ async function findActiveProducts(filters: GetProductsFilters) {
     orderBy: { name: "asc" },
     include: {
       category: true,
+      variants: {
+        where: { isActive: true },
+        orderBy: { sortOrder: "asc" },
+      },
     },
   });
 }
@@ -37,9 +47,24 @@ async function createCategory(data: CreateCategoryInput) {
 }
 
 async function createProduct(data: CreateProductInput) {
+  const { variants, ...productData } = data;
   return prisma.product.create({
-    data,
-    include: { category: true },
+    data: {
+      ...productData,
+      ...(variants && variants.length > 0
+        ? {
+            variants: {
+              create: variants.map((v) => ({
+                label: v.label,
+                priceCents: v.priceCents,
+                sortOrder: v.sortOrder,
+                isActive: v.isActive,
+              })),
+            },
+          }
+        : {}),
+    },
+    include: { category: true, variants: { orderBy: { sortOrder: "asc" } } },
   });
 }
 
@@ -59,12 +84,18 @@ async function findAllProducts(filters: GetProductsFilters) {
         : undefined,
     },
     orderBy: { name: "asc" },
-    include: { category: true },
+    include: {
+      category: true,
+      variants: { orderBy: { sortOrder: "asc" } },
+    },
   });
 }
 
 async function findProductById(id: string) {
-  return prisma.product.findUnique({ where: { id } });
+  return prisma.product.findUnique({
+    where: { id },
+    include: { variants: { orderBy: { sortOrder: "asc" } } },
+  });
 }
 
 async function findCategoryById(id: string) {
@@ -76,7 +107,67 @@ async function countProductsByCategory(categoryId: string) {
 }
 
 async function updateProduct(id: string, data: UpdateProductInput) {
-  return prisma.product.update({ where: { id }, data, include: { category: true } });
+  const { variants, ...productData } = data;
+  return prisma.$transaction(async (tx) => {
+    // Update the product itself
+    const product = await tx.product.update({
+      where: { id },
+      data: productData,
+    });
+
+    // Sync variants if provided
+    if (variants !== undefined) {
+      const existingVariants = await tx.productVariant.findMany({
+        where: { productId: id },
+      });
+      const existingIds = new Set(existingVariants.map((v) => v.id));
+      const incomingIds = new Set(
+        variants.filter((v) => v.id).map((v) => v.id!),
+      );
+
+      // Delete variants that are no longer present
+      const toDelete = [...existingIds].filter((eid) => !incomingIds.has(eid));
+      if (toDelete.length > 0) {
+        await tx.productVariant.deleteMany({
+          where: { id: { in: toDelete } },
+        });
+      }
+
+      // Upsert remaining
+      for (const v of variants) {
+        if (v.id && existingIds.has(v.id)) {
+          await tx.productVariant.update({
+            where: { id: v.id },
+            data: {
+              label: v.label,
+              priceCents: v.priceCents,
+              sortOrder: v.sortOrder,
+              isActive: v.isActive,
+            },
+          });
+        } else {
+          await tx.productVariant.create({
+            data: {
+              productId: id,
+              label: v.label,
+              priceCents: v.priceCents,
+              sortOrder: v.sortOrder,
+              isActive: v.isActive,
+            },
+          });
+        }
+      }
+    }
+
+    // Return product with fresh variants
+    return tx.product.findUniqueOrThrow({
+      where: { id },
+      include: {
+        category: true,
+        variants: { orderBy: { sortOrder: "asc" } },
+      },
+    });
+  });
 }
 
 async function softDeleteProduct(id: string) {

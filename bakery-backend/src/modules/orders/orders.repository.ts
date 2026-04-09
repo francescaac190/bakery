@@ -1,4 +1,5 @@
 import { prisma } from "../../db/prisma";
+import { generateDisplayId } from "../../shared/utils/displayId";
 import type { CreateOrderInput } from "./orders.types";
 
 type CreateOrderWithPricesInput = Omit<CreateOrderInput, "items"> & {
@@ -8,6 +9,8 @@ type CreateOrderWithPricesInput = Omit<CreateOrderInput, "items"> & {
     notes?: string;
     unitPriceCents: number;
     currency: string;
+    variantId?: string;
+    variantLabel?: string;
   }>;
   totalCents: number;
 };
@@ -22,13 +25,19 @@ async function findActiveProductsByIds(productIds: string[]) {
       id: { in: productIds },
       isActive: true,
     },
+    include: {
+      variants: { where: { isActive: true } },
+    },
   });
 }
 
 async function createOrderWithItems(input: CreateOrderWithPricesInput) {
   return prisma.$transaction(async (tx: any) => {
+    const displayId = await generateDisplayId(tx);
+
     const order = await tx.order.create({
       data: {
+        displayId,
         fulfillmentType: input.fulfillmentType,
         customerName: input.customerName,
         customerPhone: input.customerPhone,
@@ -37,6 +46,14 @@ async function createOrderWithItems(input: CreateOrderWithPricesInput) {
         deliveryAddress: input.deliveryAddress,
         notes: input.notes,
         totalCents: input.totalCents,
+      },
+    });
+
+    await tx.orderStatusLog.create({
+      data: {
+        orderId: order.id,
+        status: "PENDING",
+        changedBy: null,
       },
     });
 
@@ -49,6 +66,8 @@ async function createOrderWithItems(input: CreateOrderWithPricesInput) {
           unitPriceCents: item.unitPriceCents,
           currency: item.currency,
           notes: item.notes,
+          variantId: item.variantId ?? null,
+          variantLabel: item.variantLabel ?? null,
         })),
       });
     }
@@ -83,6 +102,7 @@ async function createOrderWithItems(input: CreateOrderWithPricesInput) {
           },
         },
         customCakeRequest: true,
+        statusLogs: { orderBy: { createdAt: "asc" } },
       },
     } as any);
   });
@@ -98,6 +118,7 @@ async function findOrderById(orderId: string) {
         },
       },
       customCakeRequest: true,
+      statusLogs: { orderBy: { createdAt: "asc" } },
     },
   } as any);
 }

@@ -14,8 +14,10 @@ async function createOrder(
   if (productIds.length > 0) {
     const products = (await ordersRepository.findActiveProductsByIds(productIds)) as Array<{
       id: string;
+      name: string;
       priceCents: number;
       currency: string;
+      variants: Array<{ id: string; priceCents: number; label: string; isActive: boolean }>;
     }>;
     const productsById = new Map(products.map((product) => [product.id, product]));
 
@@ -24,12 +26,31 @@ async function createOrder(
       if (!product) {
         throw new AppError(409, `Product not found or inactive: ${item.productId}`);
       }
+
+      let unitPriceCents = product.priceCents;
+      let variantLabel: string | undefined;
+      let variantId: string | undefined;
+
+      if (item.variantId) {
+        const variant = product.variants?.find(
+          (v) => v.id === item.variantId && v.isActive,
+        );
+        if (!variant) {
+          throw new AppError(409, `Variant not found or inactive: ${item.variantId}`);
+        }
+        unitPriceCents = variant.priceCents;
+        variantLabel = variant.label;
+        variantId = variant.id;
+      }
+
       pricedItems.push({
         productId: item.productId,
         quantity: item.quantity,
         notes: item.notes,
-        unitPriceCents: product.priceCents,
+        unitPriceCents,
         currency: product.currency,
+        variantId,
+        variantLabel,
       });
     }
   }
@@ -51,6 +72,7 @@ async function createOrder(
 
   return {
     orderId: order.id,
+    displayId: (order as any).displayId,
     status: order.status,
     totalCents: order.totalCents,
     estimatedReadyAt: order.pickupAt,

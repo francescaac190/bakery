@@ -6,6 +6,7 @@ import { LoginPage } from "@/modules/auth";
 import { DashboardPage } from "./pages/DashboardPage";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import MenuPage from "./modules/menu/pages/MenuPage";
+import OrdersPage from "./modules/orders/pages/OrdersPage";
 // import { DashboardPage } from "@/pages/DashboardPage";
 // import { UsersPage }        from '@/pages/UsersPage'
 // import { ReportsPage }      from '@/pages/ReportsPage'
@@ -25,6 +26,7 @@ export default function App() {
           <Route element={<DashboardLayout />}>
             <Route index element={<DashboardPage />} />
             <Route path="menu" element={<MenuPage />} />
+            <Route path="orders" element={<OrdersPage />} />
             {/* <Route path="users" element={<UsersPage />} />
             <Route path="reports" element={<ReportsPage />} />
             <Route path="settings" element={<SettingsPage />} /> */}

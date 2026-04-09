@@ -7,6 +7,14 @@ export interface Category {
   products?: Product[]
 }
 
+export interface ProductVariant {
+  id: string
+  label: string
+  priceCents: number
+  sortOrder: number
+  isActive: boolean
+}
+
 export interface Product {
   id: string
   name: string
@@ -18,6 +26,7 @@ export interface Product {
   isCustom: boolean
   categoryId?: string | null
   category?: Category | null
+  variants?: ProductVariant[]
 }
 
 export interface ProductFilters {
@@ -35,6 +44,14 @@ export interface UpdateCategoryInput {
   imageUrl?: string | null
 }
 
+export interface VariantInput {
+  id?: string
+  label: string
+  priceCents: number
+  sortOrder: number
+  isActive: boolean
+}
+
 export interface CreateProductInput {
   name: string
   description?: string
@@ -44,6 +61,7 @@ export interface CreateProductInput {
   isActive: boolean
   isCustom: boolean
   categoryId?: string
+  variants?: VariantInput[]
 }
 
 export interface UpdateProductInput {
@@ -55,4 +73,5 @@ export interface UpdateProductInput {
   isActive?: boolean
   isCustom?: boolean
   categoryId?: string | null
+  variants?: VariantInput[]
 }

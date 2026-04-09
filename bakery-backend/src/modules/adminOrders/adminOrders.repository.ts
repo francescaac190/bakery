@@ -2,37 +2,51 @@ import { prisma } from "../../db/prisma";
 
 type OrderStatus =
   | "PENDING"
-  | "CONFIRMED"
+  | "APPROVED"
   | "IN_PROGRESS"
   | "READY"
-  | "COMPLETED"
+  | "DELIVERED"
+  | "PICKED_UP"
   | "CANCELLED";
 
 type ListOrdersFilters = {
   status?: OrderStatus;
   from?: string;
   to?: string;
+  search?: string;
   skip: number;
   take: number;
 };
 
 async function listOrders(filters: ListOrdersFilters) {
-  const where: any = {
-    status: filters.status,
-    createdAt:
-      filters.from || filters.to
-        ? {
-            gte: filters.from ? new Date(filters.from) : undefined,
-            lte: filters.to ? new Date(filters.to) : undefined,
-          }
-        : undefined,
-  };
+  const where: any = {};
+
+  if (filters.status) {
+    where.status = filters.status;
+  }
+
+  if (filters.from || filters.to) {
+    where.createdAt = {
+      ...(filters.from ? { gte: new Date(filters.from) } : {}),
+      ...(filters.to ? { lte: new Date(filters.to) } : {}),
+    };
+  }
+
+  if (filters.search) {
+    const term = filters.search.trim();
+    where.OR = [
+      { customerName: { contains: term, mode: "insensitive" } },
+      { customerPhone: { contains: term, mode: "insensitive" } },
+      { displayId: { contains: term, mode: "insensitive" } },
+    ];
+  }
 
   const [items, total] = await prisma.$transaction([
     prisma.order.findMany({
       where,
       include: {
-        items: true,
+        items: { include: { product: { select: { name: true } } } },
+        customCakeRequest: { select: { id: true, finalPriceCents: true } },
       },
       orderBy: { createdAt: "desc" },
       skip: filters.skip,
@@ -47,16 +61,61 @@ async function listOrders(filters: ListOrdersFilters) {
 async function findOrderById(orderId: string) {
   return prisma.order.findUnique({
     where: { id: orderId },
+    include: {
+      items: {
+        include: {
+          product: { select: { id: true, name: true, imageUrl: true } },
+        },
+      },
+      customCakeRequest: true,
+      statusLogs: { orderBy: { createdAt: "asc" } },
+    },
+  } as any);
+}
+
+async function updateOrderStatus(
+  orderId: string,
+  status: OrderStatus,
+  changedBy: string,
+) {
+  return prisma.$transaction([
+    prisma.order.update({
+      where: { id: orderId },
+      data: { status },
+    }),
+    (prisma as any).orderStatusLog.create({
+      data: { orderId, status, changedBy },
+    }),
+  ]);
+}
+
+async function updateAdminNotes(orderId: string, adminNotes: string | null) {
+  return prisma.order.update({
+    where: { id: orderId },
+    data: { adminNotes },
   });
 }
 
-async function updateOrderStatus(orderId: string, status: OrderStatus) {
-  return prisma.order.update({
-    where: { id: orderId },
-    data: {
-      status,
-    },
-  });
+async function setCustomCakePrice(
+  orderId: string,
+  priceCents: number,
+  pricedBy: string,
+  newTotalCents: number,
+) {
+  return prisma.$transaction([
+    (prisma as any).customCakeRequest.update({
+      where: { orderId },
+      data: {
+        finalPriceCents: priceCents,
+        pricedAt: new Date(),
+        pricedBy,
+      },
+    }),
+    prisma.order.update({
+      where: { id: orderId },
+      data: { totalCents: newTotalCents },
+    }),
+  ]);
 }
 
 async function deleteOrder(orderId: string) {
@@ -67,5 +126,7 @@ export const adminOrdersRepository = {
   listOrders,
   findOrderById,
   updateOrderStatus,
+  updateAdminNotes,
+  setCustomCakePrice,
   deleteOrder,
 };

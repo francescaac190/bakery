@@ -1,80 +1,119 @@
-// src/pages/DashboardPage.tsx
-// import { Users, DollarSign, ShoppingBag, TrendingUp } from "lucide-react";
-// import { PageHeader } from "@/components/dashboard/PageHeader";
-// import { StatCard } from "@/components/dashboard/StatCard";
-// import { ChartCard } from "@/components/dashboard/ChartCard";
-// import { DataTable } from "@/components/dashboard/DataTable";
-// import { Badge } from "@/components/ui/Badge";
-// import { Button } from "@/components/ui/Button";
+import { useEffect, useState } from 'react'
+import { useAuthStore } from '@/modules/auth/store/auth.store'
+import { ClipboardList, Clock, AlertTriangle, CakeSlice } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { STATUS_LABELS, STATUS_COLORS } from '@/modules/orders/types'
+import { cn } from '@/lib/cn'
 
-// const chartData = [
-//   { label: "Ene", value: 3200 },
-//   { label: "Feb", value: 4100 },
-//   { label: "Mar", value: 3800 },
-//   { label: "Abr", value: 5200 },
-//   { label: "May", value: 4700 },
-//   { label: "Jun", value: 6100 },
-// ];
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:1313/api/v1'}/admin/dashboard`
 
-// interface User {
-//   id: number;
-//   name: string;
-//   email: string;
-//   role: string;
-//   status: string;
-//   joined: string;
-// }
-
-// const users: User[] = [
-//   {
-//     id: 1,
-//     name: "Ana Torres",
-//     email: "ana@ejemplo.com",
-//     role: "Admin",
-//     status: "active",
-//     joined: "2024-01-12",
-//   },
-//   {
-//     id: 2,
-//     name: "Carlos Méndez",
-//     email: "carlos@ejemplo.com",
-//     role: "Editor",
-//     status: "active",
-//     joined: "2024-02-08",
-//   },
-//   {
-//     id: 3,
-//     name: "Lucía Ramos",
-//     email: "lucia@ejemplo.com",
-//     role: "Viewer",
-//     status: "pending",
-//     joined: "2024-03-21",
-//   },
-//   {
-//     id: 4,
-//     name: "Diego Vargas",
-//     email: "diego@ejemplo.com",
-//     role: "Editor",
-//     status: "inactive",
-//     joined: "2024-01-30",
-//   },
-// ];
-
-// const statusMap: Record<string, "success" | "warning" | "neutral"> = {
-//   active: "success",
-//   pending: "warning",
-//   inactive: "neutral",
-// };
-// const statusLabel: Record<string, string> = {
-//   active: "Activo",
-//   pending: "Pendiente",
-//   inactive: "Inactivo",
-// };
+type Summary = {
+  todayCount: number
+  pendingCount: number
+  inProgressCount: number
+  unpricedCakeCount: number
+  recentOrders: Array<{
+    id: string
+    displayId: string
+    customerName: string
+    status: string
+    totalCents: number
+    currency: string
+    createdAt: string
+  }>
+}
 
 export function DashboardPage() {
+  const [summary, setSummary] = useState<Summary | null>(null)
+  const token = useAuthStore((s) => s.token)
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    fetch(`${BASE_URL}/summary`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((json) => setSummary((json as { data: Summary }).data))
+      .catch(() => {})
+  }, [token])
+
+  if (!summary) {
+    return (
+      <div className="p-6 flex justify-center py-12">
+        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  const cards = [
+    { label: 'Pedidos hoy', value: summary.todayCount, icon: ClipboardList },
+    { label: 'Pendientes', value: summary.pendingCount, icon: Clock },
+    { label: 'En proceso', value: summary.inProgressCount, icon: CakeSlice },
+    {
+      label: 'Tortas sin precio',
+      value: summary.unpricedCakeCount,
+      icon: AlertTriangle,
+      alert: summary.unpricedCakeCount > 0,
+    },
+  ]
+
   return (
-    <div>
-      <h1>HOLA</h1>
+    <div className="p-6 space-y-6">
+      <h1 className="text-xl font-bold text-text-heading">Dashboard</h1>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {cards.map((card) => (
+          <div
+            key={card.label}
+            className={cn(
+              'bg-white rounded-lg border border-border-subtle p-4',
+              card.alert && 'border-amber-300 bg-amber-50',
+            )}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <card.icon
+                size={16}
+                className={card.alert ? 'text-amber-600' : 'text-text-muted'}
+              />
+              <span className="text-xs text-text-muted">{card.label}</span>
+            </div>
+            <p className="text-2xl font-bold text-text-heading">{card.value}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-white rounded-lg border border-border-subtle">
+        <div className="px-4 py-3 border-b border-border-subtle">
+          <h2 className="text-sm font-bold text-text-heading">Pedidos recientes</h2>
+        </div>
+        <table className="w-full text-sm">
+          <tbody>
+            {summary.recentOrders.map((order) => (
+              <tr
+                key={order.id}
+                onClick={() => navigate('/orders')}
+                className="border-b border-border-subtle last:border-0 hover:bg-background-4 cursor-pointer"
+              >
+                <td className="px-4 py-3 font-mono text-xs">{order.displayId}</td>
+                <td className="px-4 py-3">{order.customerName}</td>
+                <td className="px-4 py-3">
+                  <span
+                    className={cn(
+                      'text-xs px-2 py-0.5 rounded-full font-medium',
+                      STATUS_COLORS[order.status as keyof typeof STATUS_COLORS] ?? 'bg-gray-100 text-gray-600',
+                    )}
+                  >
+                    {STATUS_LABELS[order.status as keyof typeof STATUS_LABELS] ?? order.status}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-right font-mono">
+                  {order.currency} {(order.totalCents / 100).toFixed(2)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
-  );
+  )
 }

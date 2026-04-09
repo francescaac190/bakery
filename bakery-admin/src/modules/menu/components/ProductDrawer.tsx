@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { uploadImage } from '../api/menu.api'
 import { useCategories } from '../hooks/useCategories'
 import { useCreateProduct, useUpdateProduct } from '../hooks/useProducts'
-import type { CreateProductInput, Product, UpdateProductInput } from '../types'
+import type { CreateProductInput, Product, UpdateProductInput, VariantInput } from '../types'
 
 interface Props {
   mode: 'create' | 'edit'
@@ -25,6 +25,7 @@ export function ProductDrawer({ mode, product, onClose }: Props) {
   const [categoryId, setCategoryId] = useState('')
   const [isActive, setIsActive] = useState(true)
   const [isCustom, setIsCustom] = useState(false)
+  const [variants, setVariants] = useState<VariantInput[]>([])
   const [isUploading, setIsUploading] = useState(false)
 
   const { data: categories } = useCategories()
@@ -42,6 +43,15 @@ export function ProductDrawer({ mode, product, onClose }: Props) {
       setCategoryId(product.categoryId ?? '')
       setIsActive(product.isActive)
       setIsCustom(product.isCustom)
+      setVariants(
+        (product.variants ?? []).map(v => ({
+          id: v.id,
+          label: v.label,
+          priceCents: v.priceCents,
+          sortOrder: v.sortOrder,
+          isActive: v.isActive,
+        }))
+      )
     } else {
       setName('')
       setDescription('')
@@ -51,6 +61,7 @@ export function ProductDrawer({ mode, product, onClose }: Props) {
       setCategoryId('')
       setIsActive(true)
       setIsCustom(false)
+      setVariants([])
     }
     setImageFile(null)
   }, [mode, product])
@@ -84,6 +95,8 @@ export function ProductDrawer({ mode, product, onClose }: Props) {
       let imageUrl = existingImageUrl
       if (imageFile) imageUrl = await uploadImage(imageFile)
 
+      const variantsPayload = variants.length > 0 ? variants : undefined
+
       if (mode === 'create') {
         const input: CreateProductInput = {
           name: name.trim(),
@@ -94,6 +107,7 @@ export function ProductDrawer({ mode, product, onClose }: Props) {
           ...(description.trim() ? { description: description.trim() } : {}),
           ...(imageUrl ? { imageUrl } : {}),
           ...(categoryId ? { categoryId } : {}),
+          ...(variantsPayload ? { variants: variantsPayload } : {}),
         }
         createProduct.mutate(input, { onSuccess: onClose })
       } else if (product) {
@@ -106,6 +120,7 @@ export function ProductDrawer({ mode, product, onClose }: Props) {
           description: description.trim() || null,
           imageUrl: imageUrl || null,
           categoryId: categoryId || null,
+          variants: variants,
         }
         updateProduct.mutate({ id: product.id, input }, { onSuccess: onClose })
       }
@@ -271,6 +286,58 @@ export function ProductDrawer({ mode, product, onClose }: Props) {
               </button>
             </div>
           </div>
+
+          {/* Variants */}
+          {!isCustom && (
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-semibold text-text-secondary uppercase tracking-wide">
+                Variantes de tamaño
+              </label>
+              {variants.map((v, i) => (
+                <div key={i} className="flex gap-2 items-center">
+                  <input
+                    placeholder="Ej: 10 personas"
+                    value={v.label}
+                    onChange={(e) => {
+                      const next = [...variants]
+                      next[i] = { ...next[i], label: e.target.value }
+                      setVariants(next)
+                    }}
+                    className="flex-1 border border-border-card rounded-md px-2 py-1.5 text-sm bg-background-3 text-text focus:outline-none focus:border-primary"
+                  />
+                  <input
+                    type="number"
+                    placeholder="Precio Bs."
+                    value={v.priceCents ? (v.priceCents / 100).toFixed(2) : ''}
+                    onChange={(e) => {
+                      const next = [...variants]
+                      next[i] = { ...next[i], priceCents: Math.round(parseFloat(e.target.value || '0') * 100) }
+                      setVariants(next)
+                    }}
+                    step="0.01"
+                    min="0"
+                    className="w-24 border border-border-card rounded-md px-2 py-1.5 text-sm bg-background-3 text-text focus:outline-none focus:border-primary"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setVariants(variants.filter((_, j) => j !== i))}
+                    className="text-secondary text-sm hover:text-red-700 transition-colors px-1"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() =>
+                  setVariants([...variants, { label: '', priceCents: 0, sortOrder: variants.length, isActive: true }])
+                }
+                className="text-xs text-primary hover:underline text-left"
+              >
+                + Agregar variante
+              </button>
+            </div>
+          )}
 
           {/* Submit */}
           <div className="mt-auto flex flex-col gap-2 pt-4 border-t border-border-subtle">

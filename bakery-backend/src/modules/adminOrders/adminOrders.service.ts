@@ -1,10 +1,12 @@
 type OrderStatus =
   | "PENDING"
-  | "CONFIRMED"
+  | "APPROVED"
   | "IN_PROGRESS"
   | "READY"
-  | "COMPLETED"
+  | "DELIVERED"
+  | "PICKED_UP"
   | "CANCELLED";
+
 import { AppError } from "../../shared/errors/app-error";
 import { parsePagination } from "../../shared/utils/pagination";
 import { adminOrdersRepository } from "./adminOrders.repository";
@@ -13,25 +15,31 @@ type ListOrdersInput = {
   status?: OrderStatus;
   from?: string;
   to?: string;
+  search?: string;
   page?: string;
   pageSize?: string;
 };
 
 const allowedStatusTransitions: Record<OrderStatus, OrderStatus[]> = {
-  PENDING: ["CONFIRMED", "CANCELLED"],
-  CONFIRMED: ["IN_PROGRESS", "CANCELLED"],
+  PENDING: ["APPROVED", "CANCELLED"],
+  APPROVED: ["IN_PROGRESS", "CANCELLED"],
   IN_PROGRESS: ["READY", "CANCELLED"],
-  READY: ["COMPLETED", "CANCELLED"],
-  COMPLETED: [],
+  READY: ["DELIVERED", "PICKED_UP", "CANCELLED"],
+  DELIVERED: [],
+  PICKED_UP: [],
   CANCELLED: [],
 };
 
 async function listOrders(input: ListOrdersInput) {
-  const { page, pageSize, skip, take } = parsePagination(input.page, input.pageSize);
+  const { page, pageSize, skip, take } = parsePagination(
+    input.page,
+    input.pageSize,
+  );
   const { items, total } = await adminOrdersRepository.listOrders({
     status: input.status,
     from: input.from,
     to: input.to,
+    search: input.search,
     skip,
     take,
   });
@@ -47,7 +55,19 @@ async function listOrders(input: ListOrdersInput) {
   };
 }
 
-async function updateOrderStatus(orderId: string, status: OrderStatus) {
+async function getOrderById(orderId: string) {
+  const order = await adminOrdersRepository.findOrderById(orderId);
+  if (!order) {
+    throw new AppError(404, "Order not found");
+  }
+  return order;
+}
+
+async function updateOrderStatus(
+  orderId: string,
+  status: OrderStatus,
+  changedBy: string,
+) {
   const existingOrder = await adminOrdersRepository.findOrderById(orderId);
   if (!existingOrder) {
     throw new AppError(404, "Order not found");
@@ -62,7 +82,58 @@ async function updateOrderStatus(orderId: string, status: OrderStatus) {
     );
   }
 
-  return adminOrdersRepository.updateOrderStatus(orderId, status);
+  if (status === "DELIVERED" && existingOrder.fulfillmentType !== "DELIVERY") {
+    throw new AppError(
+      409,
+      "Cannot mark as DELIVERED — order fulfillment type is PICKUP",
+    );
+  }
+  if (status === "PICKED_UP" && existingOrder.fulfillmentType !== "PICKUP") {
+    throw new AppError(
+      409,
+      "Cannot mark as PICKED_UP — order fulfillment type is DELIVERY",
+    );
+  }
+
+  return adminOrdersRepository.updateOrderStatus(orderId, status, changedBy);
+}
+
+async function updateAdminNotes(orderId: string, adminNotes: string | null) {
+  const existingOrder = await adminOrdersRepository.findOrderById(orderId);
+  if (!existingOrder) {
+    throw new AppError(404, "Order not found");
+  }
+  return adminOrdersRepository.updateAdminNotes(orderId, adminNotes);
+}
+
+async function setCustomCakePrice(
+  orderId: string,
+  priceCents: number,
+  pricedBy: string,
+) {
+  const order = await adminOrdersRepository.findOrderById(orderId);
+  if (!order) {
+    throw new AppError(404, "Order not found");
+  }
+  const customCake = (order as any).customCakeRequest;
+  if (!customCake) {
+    throw new AppError(409, "Order does not have a custom cake request");
+  }
+
+  const itemsTotal = ((order as any).items ?? []).reduce(
+    (sum: number, item: any) => sum + item.quantity * item.unitPriceCents,
+    0,
+  );
+  const newTotalCents = itemsTotal + priceCents;
+
+  await adminOrdersRepository.setCustomCakePrice(
+    orderId,
+    priceCents,
+    pricedBy,
+    newTotalCents,
+  );
+
+  return { orderId, finalPriceCents: priceCents, totalCents: newTotalCents };
 }
 
 async function deleteOrder(orderId: string) {
@@ -75,6 +146,9 @@ async function deleteOrder(orderId: string) {
 
 export const adminOrdersService = {
   listOrders,
+  getOrderById,
   updateOrderStatus,
+  updateAdminNotes,
+  setCustomCakePrice,
   deleteOrder,
 };
