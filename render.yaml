@@ -23,7 +23,7 @@ services:
     runtime: static
     rootDir: bakery-frontend
     buildCommand: npm install && npm run build
-    staticPublishPath: dist
+    staticPublishPath: bakery-frontend/dist
     envVars:
       - key: VITE_API_URL
         sync: false          # e.g. https://bakery-backend.onrender.com/api/v1
@@ -38,7 +38,7 @@ services:
     runtime: static
     rootDir: bakery-admin
     buildCommand: npm install && npm run build
-    staticPublishPath: dist
+    staticPublishPath: bakery-admin/dist
     envVars:
       - key: VITE_API_BASE_URL
         sync: false          # e.g. https://bakery-backend.onrender.com/api/v1
