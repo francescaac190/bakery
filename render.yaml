@@ -15,16 +15,16 @@ services:
       - key: DATABASE_URL
         sync: false          # paste the Render Postgres internal URL here
       - key: ALLOWED_ORIGIN
-        sync: false          # set to your frontend URL, e.g. https://bakery-frontend.onrender.com
+        sync: false          # comma-separated frontend + admin URLs
 
   # ── Frontend (Vite SPA → static site) ────────────────────────────────────
-  - type: static
+  - type: web
     name: bakery-frontend
+    runtime: static
     rootDir: bakery-frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
     envVars:
-      # Set in Render dashboard — must match the backend web service URL above
       - key: VITE_API_URL
         sync: false          # e.g. https://bakery-backend.onrender.com/api/v1
     routes:
@@ -33,13 +33,13 @@ services:
         destination: /index.html
 
   # ── Admin Panel (Vite SPA → static site) ─────────────────────────────────
-  - type: static
+  - type: web
     name: bakery-admin
+    runtime: static
     rootDir: bakery-admin
     buildCommand: npm install && npm run build
     staticPublishPath: dist
     envVars:
-      # Set in Render dashboard — must match the backend web service URL above
       - key: VITE_API_BASE_URL
         sync: false          # e.g. https://bakery-backend.onrender.com/api/v1
     routes:
