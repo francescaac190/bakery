@@ -1,73 +1,79 @@
-# React + TypeScript + Vite
+# Bakery Frontend (Customer Storefront)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React 19 customer-facing storefront for browsing the menu, placing orders, and tracking them.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Framework:** React 19 + TypeScript
+- **Build tool:** Vite 8
+- **Styling:** Tailwind CSS 3 + MUI (Material UI)
+- **Routing:** React Router v7
+- **Maps:** Leaflet + react-leaflet
+- **State:** React Context (cart)
 
-## React Compiler
+## Quick Start
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev   # http://localhost:5173
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Create a `.env` file if you need to override the API URL:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```env
+VITE_API_BASE_URL=http://localhost:1313/api/v1
+```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run dev` | Start dev server |
+| `npm run build` | Type-check + build for production |
+| `npm run preview` | Preview production build |
+| `npm run lint` | Lint with ESLint |
+
+## Pages & Routes
+
+| Route | Component | Description |
+|-------|-----------|-------------|
+| `/` | `ProductsPage` | Browse menu by category |
+| `/products/:id` | `ProductDetailPage` | Product detail with size variants |
+| `/personaliza` | `PersonalizaPage` | Custom cake request form |
+| `/pedido` | `PedidoPage` | Cart review + checkout (pickup or delivery) |
+| `/seguimiento/:id` | `TrackingPage` | Live order tracking |
+
+## Features
+
+- **Menu browsing** — Products grouped by category with search
+- **Size variants** — Products with tier pricing (e.g. small / medium / large)
+- **Custom cake** — Form to request a personalized cake (flavor, filling, frosting, servings, event date, message)
+- **Cart** — Persistent cart via React Context; supports catalog items + custom cake in one order
+- **Checkout** — Pickup or delivery selection; delivery address via Leaflet map picker
+- **Order tracking** — Polls every 30 seconds; shows status progress bar, order summary, and status history log
+
+## Project Structure
+
+```
+src/
+  App.tsx
+  features/
+    products/
+      context/CartContext.tsx     # Cart state and persistence
+      pages/
+        ProductsPage.tsx          # Menu listing
+        ProductDetailPage.tsx     # Product detail + add to cart
+        PersonalizaPage.tsx       # Custom cake form
+      ui/
+        ProductsList.tsx
+        Cart.tsx
+        InfoCard.tsx
+    pedidos/
+      pages/
+        PedidoPage.tsx            # Checkout
+        TrackingPage.tsx          # Order tracking
+      ui/
+        LocationPicker.tsx        # Leaflet map for delivery address
+  components/
+    ui/                           # Shared UI primitives
 ```

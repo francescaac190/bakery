@@ -1,73 +1,89 @@
-# React + TypeScript + Vite
+# Bakery Admin
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React 19 admin panel for managing orders, menu, and users.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Framework:** React 19 + TypeScript
+- **Build tool:** Vite 8
+- **Styling:** Tailwind CSS 4
+- **Routing:** React Router v7
+- **Server state:** TanStack Query v5
+- **Client state:** Zustand v5
+- **Tables:** TanStack Table v8
+- **Charts:** Recharts
+- **Notifications:** react-hot-toast
+- **Icons:** Lucide React
 
-## React Compiler
+## Quick Start
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev   # http://localhost:5174
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Create a `.env` file if you need to override the API URL:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```env
+VITE_API_BASE_URL=http://localhost:1313/api/v1
+```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run dev` | Start dev server |
+| `npm run build` | Type-check + build for production |
+| `npm run preview` | Preview production build |
+| `npm run lint` | Lint with ESLint |
+
+## Pages & Routes
+
+| Route | Page | Description |
+|-------|------|-------------|
+| `/login` | `LoginPage` | JWT login (redirects to `/` if already authenticated) |
+| `/` | `DashboardPage` | Summary stats + recent orders |
+| `/menu` | `MenuPage` | Manage categories and products |
+| `/orders` | `OrdersPage` | View and manage all orders |
+
+All routes except `/login` are protected by `AuthGuard` (requires valid JWT).
+
+## Features
+
+- **Authentication** — JWT login with Zustand-persisted token; `AuthGuard` / `GuestGuard` route protection
+- **Dashboard** — Live summary: orders today, pending, in-progress, unpriced custom cakes; recent orders table
+- **Menu management** — Create, edit, and delete categories and products via slide-in drawers; product image upload; size variant / tier pricing
+- **Order management** — Filterable order list; order detail drawer; status transitions; set price for custom cake requests
+- **RBAC** — `SUPER_ADMIN` and `STAFF` roles enforced server-side
+
+## Project Structure
+
+```
+src/
+  App.tsx
+  components/
+    layout/
+      DashboardLayout.tsx    # Sidebar + outlet wrapper
+      Sidebar.tsx
+    ui/
+      Button.tsx
+  modules/
+    auth/
+      guards/
+        AuthGuard.tsx        # Redirects to /login if not authenticated
+        GuestGuard.tsx       # Redirects to / if already authenticated
+      pages/LoginPage.tsx
+      store/auth.store.ts    # Zustand token store
+    menu/
+      pages/MenuPage.tsx
+      components/
+        CategoriesTab.tsx
+        ProductsTab.tsx
+        CategoryDrawer.tsx
+        ProductDrawer.tsx
+    orders/
+      pages/OrdersPage.tsx
+      components/OrderDetailDrawer.tsx
+  pages/
+    DashboardPage.tsx
 ```
