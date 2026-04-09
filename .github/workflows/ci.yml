@@ -28,6 +28,10 @@ jobs:
         working-directory: bakery-backend
         run: npm ci
 
+      - name: Generate Prisma client
+        working-directory: bakery-backend
+        run: npx prisma generate
+
       - name: Type-check backend
         working-directory: bakery-backend
         run: npm run typecheck
