@@ -30,14 +30,20 @@ jobs:
 
       - name: Generate Prisma client
         working-directory: bakery-backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ci_db
         run: npx prisma generate
 
       - name: Type-check backend
         working-directory: bakery-backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ci_db
         run: npm run typecheck
 
       - name: Build backend
         working-directory: bakery-backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ci_db
         run: npm run build
 
       # ── Frontend ──────────────────────────────────────────────────────────
