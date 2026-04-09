@@ -46,7 +46,7 @@ export function ProductDetailPage() {
     if (hasVariants && product?.variants?.[0]) {
       setSelectedVariant(product.variants[0]);
     }
-  }, [product]);
+  }, [product, hasVariants]);
 
   if (!product) return null;
 

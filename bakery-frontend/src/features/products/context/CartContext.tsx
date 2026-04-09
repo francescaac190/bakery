@@ -76,7 +76,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (customCake) {
-      const { inspirationImageFile, inspirationImagePreview, ...serializable } = customCake;
+      const { inspirationImageFile: _file, inspirationImagePreview: _preview, ...serializable } = customCake;
       localStorage.setItem(CUSTOM_CAKE_KEY, JSON.stringify(serializable));
     } else {
       localStorage.removeItem(CUSTOM_CAKE_KEY);
@@ -180,6 +180,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useCart() {
   const ctx = useContext(CartContext);
   if (!ctx) throw new Error("useCart must be used within CartProvider");
