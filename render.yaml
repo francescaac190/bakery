@@ -31,3 +31,18 @@ services:
       - type: rewrite
         source: /*
         destination: /index.html
+
+  # ── Admin Panel (Vite SPA → static site) ─────────────────────────────────
+  - type: static
+    name: bakery-admin
+    rootDir: bakery-admin
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      # Set in Render dashboard — must match the backend web service URL above
+      - key: VITE_API_BASE_URL
+        sync: false          # e.g. https://bakery-backend.onrender.com/api/v1
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

@@ -1,0 +1,36 @@
+name: CD
+
+on:
+  push:
+    branches: [master]
+
+# Only run one deployment at a time; cancel in-flight if a new push arrives
+concurrency:
+  group: deploy-production
+  cancel-in-progress: true
+
+jobs:
+  # CI must pass before we deploy
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    name: Deploy to Render
+    needs: ci
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy backend
+        run: |
+          curl -s --fail "${{ secrets.RENDER_DEPLOY_HOOK_BACKEND }}" \
+            -X POST -d ""
+
+      - name: Deploy frontend
+        run: |
+          curl -s --fail "${{ secrets.RENDER_DEPLOY_HOOK_FRONTEND }}" \
+            -X POST -d ""
+
+      - name: Deploy admin
+        run: |
+          curl -s --fail "${{ secrets.RENDER_DEPLOY_HOOK_ADMIN }}" \
+            -X POST -d ""
