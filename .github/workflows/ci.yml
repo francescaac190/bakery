@@ -20,7 +20,7 @@ jobs:
       - name: Setup Node (backend)
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: "npm"
           cache-dependency-path: bakery-backend/package-lock.json
 
@@ -44,7 +44,7 @@ jobs:
       - name: Setup Node (frontend)
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: "npm"
           cache-dependency-path: bakery-frontend/package-lock.json
 
@@ -64,7 +64,7 @@ jobs:
       - name: Setup Node (admin)
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: "npm"
           cache-dependency-path: bakery-admin/package-lock.json
 

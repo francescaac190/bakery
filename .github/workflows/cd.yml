@@ -21,13 +21,10 @@ jobs:
 
     steps:
       - name: Deploy backend
-        if: ${{ secrets.RENDER_DEPLOY_HOOK_BACKEND != '' }}
         run: curl -s --fail -X POST "${{ secrets.RENDER_DEPLOY_HOOK_BACKEND }}"
 
       - name: Deploy frontend
-        if: ${{ secrets.RENDER_DEPLOY_HOOK_FRONTEND != '' }}
         run: curl -s --fail -X POST "${{ secrets.RENDER_DEPLOY_HOOK_FRONTEND }}"
 
       - name: Deploy admin
-        if: ${{ secrets.RENDER_DEPLOY_HOOK_ADMIN != '' }}
         run: curl -s --fail -X POST "${{ secrets.RENDER_DEPLOY_HOOK_ADMIN }}"
