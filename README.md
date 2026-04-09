@@ -1,92 +1,23 @@
 # Bakery Ordering System
 
-A full-stack MVP for an online bakery ordering platform. Customers can browse the menu, add products to their cart, and place orders — including custom cake requests. Admins can view and manage orders through a dedicated API.
+Full-stack online bakery platform. Customers browse the menu, build a cart, and place orders — including custom cake requests. A separate admin panel handles order management, menu editing, and staff authentication.
 
----
-
-## Project Structure
+## Monorepo Structure
 
 ```
 bakery/
-├── bakery-backend/    # Node.js/Express REST API
-└── bakery-frontend/   # React SPA
+├── bakery-backend/    # Express 5 REST API + Prisma + PostgreSQL
+├── bakery-frontend/   # Customer storefront (React 19 + Vite)
+└── bakery-admin/      # Admin panel (React 19 + Vite + React Query)
 ```
-
----
 
 ## Tech Stack
 
-### Backend
-| Layer | Technology |
-|-------|-----------|
-| Runtime | Node.js + TypeScript |
-| Framework | Express 5 |
-| Database | PostgreSQL |
-| ORM | Prisma |
-| Validation | Zod |
-
-### Frontend
-| Layer | Technology |
-|-------|-----------|
-| Framework | React 19 |
-| Build Tool | Vite |
-| Styling | Tailwind CSS |
-| Language | TypeScript |
-
----
-
-## Features
-
-- **Menu browsing** — list products by category or search by name
-- **Cart & ordering** — place orders with one or more catalog items
-- **Custom cake requests** — specify flavor, filling, servings, event date, design notes, and allergies
-- **Order tracking** — retrieve an order by ID and check its status
-- **Admin order management** — list, filter, paginate, and update order statuses
-- **Status workflow** — enforced transitions: `PENDING → CONFIRMED → IN_PROGRESS → READY → COMPLETED` (cancellable at any stage)
-- **Pickup or delivery** — delivery requires an address
-
----
-
-## Database Schema
-
-```
-Category     — product categories with images
-Product      — menu items (price in BOB cents), images, descriptions
-Order        — customer orders with status and fulfillment type
-OrderItem    — line items with price snapshot at time of order
-CustomCakeRequest — optional custom cake details linked to an order
-```
-
----
-
-## API Reference
-
-Base URL: `http://localhost:1313/api/v1`
-
-### Public
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/menu/categories` | All categories with their active products |
-| `GET` | `/menu/products` | Products (optional `?categoryId=&search=`) |
-| `POST` | `/orders` | Create a new order |
-| `GET` | `/orders/:id` | Get order by ID |
-
-### Admin
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/admin/orders` | List orders (`?status=&from=&to=&page=&pageSize=`) |
-| `PATCH` | `/admin/orders/:id/status` | Update order status |
-
-### Health
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/` | API status |
-| `GET` | `/health` | Health check |
-
----
+| App | Key Technologies |
+|-----|-----------------|
+| Backend | Node.js, TypeScript, Express 5, Prisma 7, PostgreSQL, Zod, JWT, Multer |
+| Customer Frontend | React 19, Vite, Tailwind CSS 3, MUI, React Router v7, Leaflet |
+| Admin Frontend | React 19, Vite, Tailwind CSS 4, React Router v7, TanStack Query v5, Zustand v5, Recharts |
 
 ## Getting Started
 
@@ -100,86 +31,101 @@ Base URL: `http://localhost:1313/api/v1`
 ```bash
 cd bakery-backend
 npm install
-
-# Copy and fill in environment variables
-cp .env.example .env  # set DATABASE_URL and PORT
-
-# Run migrations and seed the database
-npm run prisma:migrate
-npm run seed
-
-# Start dev server (port 1313)
-npm run dev
 ```
 
-### Frontend
+Create `.env`:
+
+```env
+DATABASE_URL="postgresql://postgres:password@localhost:5432/bakery_db"
+PORT=1313
+API_PREFIX=/api/v1
+JWT_SECRET=your_secret
+```
+
+```bash
+npm run prisma:migrate   # run migrations
+npm run seed             # seed menu data
+npm run dev              # http://localhost:1313
+```
+
+### Customer Frontend
 
 ```bash
 cd bakery-frontend
 npm install
-
-# Start Vite dev server
-npm run dev
+npm run dev              # http://localhost:5173
 ```
 
----
+### Admin Frontend
 
-## Available Scripts
-
-### Backend
-
-| Script | Description |
-|--------|-------------|
-| `npm run dev` | Start dev server with hot reload |
-| `npm run build` | Compile TypeScript |
-| `npm run start` | Run compiled server |
-| `npm run typecheck` | Type-check without emitting |
-| `npm run test` | Run tests |
-| `npm run seed` | Seed the database |
-| `npm run prisma:migrate` | Run Prisma migrations |
-| `npm run prisma:studio` | Open Prisma Studio GUI |
-| `npm run prisma:generate` | Regenerate Prisma client |
-
-### Frontend
-
-| Script | Description |
-|--------|-------------|
-| `npm run dev` | Start Vite dev server |
-| `npm run build` | Production build |
-| `npm run preview` | Preview production build |
-| `npm run lint` | Run ESLint |
-
----
-
-## Order Creation Payload
-
-```json
-{
-  "customerName": "Ana García",
-  "customerPhone": "+591 70000000",
-  "fulfillmentType": "PICKUP",
-  "deliveryAddress": null,
-  "notes": "Sin azúcar en la decoración",
-  "items": [
-    { "productId": "uuid-here", "quantity": 2 }
-  ],
-  "customCake": {
-    "flavor": "Red Velvet",
-    "filling": "Queso crema",
-    "servings": 20,
-    "eventDate": "2026-04-10",
-    "designNotes": "Decoración floral en rosa",
-    "allergies": "Nueces"
-  }
-}
+```bash
+cd bakery-admin
+npm install
+npm run dev              # http://localhost:5174
 ```
 
-> At least one `items` entry **or** a `customCake` object is required. `deliveryAddress` is required when `fulfillmentType` is `"DELIVERY"`.
+Both frontends default to `http://localhost:1313/api/v1`. Override with `VITE_API_BASE_URL` in a local `.env`.
 
----
+## Features
 
-## Notes
+### Customer Storefront
 
-- Prices are stored and returned in **cents** (currency: BOB — Bolivian Boliviano)
-- Authentication on admin endpoints is not yet implemented (planned)
-- The frontend currently renders the products/menu page as the main view
+- Browse menu by category, search products
+- Product detail with size tier variants
+- Custom cake request (flavor, filling, frosting, servings, event date, message)
+- Cart with catalog items + optional custom cake in one order
+- Checkout with pickup or delivery (map-based address picker)
+- Order tracking page — polls every 30s, shows status progress and history
+
+### Admin Panel
+
+- JWT login with role-based access (`SUPER_ADMIN`, `STAFF`)
+- Dashboard with live stats: orders today, pending, in-progress, unpriced custom cakes
+- Menu management — create/edit/delete categories and products with image upload and size variants
+- Order management — filter by status/date, advance order through status workflow, set price on custom cake requests
+
+## Order Status Workflow
+
+```
+PENDING → CONFIRMED → IN_PROGRESS → READY → COMPLETED
+                                           ↘
+                 (cancellable at any stage) → CANCELLED
+```
+
+## API Overview
+
+Base URL: `http://localhost:1313/api/v1`
+
+**Public**
+- `GET /menu/categories` — categories list
+- `GET /menu/products` — products (`?categoryId=&search=`)
+- `POST /orders` — create order
+- `GET /orders/:id` — order tracking data
+
+**Admin (JWT required)**
+- `POST /auth/login` — get token
+- `GET /admin/dashboard/summary` — dashboard stats
+- `GET/PATCH /admin/orders` — list and update orders
+- `GET/POST/PATCH/DELETE /admin/menu/categories` — manage categories
+- `GET/POST/PATCH/DELETE /admin/menu/products` — manage products
+- `POST /admin/upload` — upload image
+- `GET/POST /admin/users` — manage admin users
+
+See each app's `README.md` for the full API reference and script list.
+
+## Deployment
+
+Configured for [Render.com](https://render.com) via `render.yaml`. Set the following in the Render dashboard:
+
+| Service | Env var | Value |
+|---------|---------|-------|
+| `bakery-backend` | `DATABASE_URL` | Render Postgres internal URL |
+| `bakery-backend` | `JWT_SECRET` | Secret string |
+| `bakery-backend` | `ALLOWED_ORIGIN` | Frontend URL |
+| `bakery-frontend` | `VITE_API_BASE_URL` | Backend service URL |
+
+## Conventions
+
+- Prices stored in **cents** (currency: BOB — Bolivian Boliviano)
+- Products use soft deletes (`isActive` flag)
+- Static uploads served from `./uploads/` in the backend
