@@ -39,14 +39,9 @@ export function ProductDetailPage() {
   }, [product, navigate]);
 
   const hasVariants = !product?.isCustom && (product?.variants?.length ?? 0) > 0;
-  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
-
-  // Auto-select first variant when product has variants
-  useEffect(() => {
-    if (hasVariants && product?.variants?.[0]) {
-      setSelectedVariant(product.variants[0]);
-    }
-  }, [product, hasVariants]);
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
+    hasVariants && product?.variants?.[0] ? product.variants[0] : null,
+  );
 
   if (!product) return null;
 

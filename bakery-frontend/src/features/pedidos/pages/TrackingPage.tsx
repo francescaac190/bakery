@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { fetchOrder, type OrderTrackingData } from "../api";
 
@@ -27,23 +27,22 @@ export function TrackingPage() {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
-  const loadOrder = useCallback(async () => {
-    if (!id) return;
-    try {
-      const data = await fetchOrder(id);
-      setOrder(data);
-      setLastUpdated(new Date());
-      setError(null);
-    } catch {
-      setError("No se pudo encontrar el pedido.");
-    }
-  }, [id]);
-
   useEffect(() => {
-    loadOrder();
-    const timer = setInterval(loadOrder, POLL_INTERVAL);
+    if (!id) return;
+    const fetchAndSet = async () => {
+      try {
+        const data = await fetchOrder(id);
+        setOrder(data);
+        setLastUpdated(new Date());
+        setError(null);
+      } catch {
+        setError("No se pudo encontrar el pedido.");
+      }
+    };
+    fetchAndSet();
+    const timer = setInterval(fetchAndSet, POLL_INTERVAL);
     return () => clearInterval(timer);
-  }, [loadOrder]);
+  }, [id]);
 
   if (error) {
     return (

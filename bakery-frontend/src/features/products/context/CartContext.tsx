@@ -76,7 +76,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (customCake) {
-      const { inspirationImageFile: _file, inspirationImagePreview: _preview, ...serializable } = customCake;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { inspirationImageFile, inspirationImagePreview, ...serializable } = customCake;
       localStorage.setItem(CUSTOM_CAKE_KEY, JSON.stringify(serializable));
     } else {
       localStorage.removeItem(CUSTOM_CAKE_KEY);
