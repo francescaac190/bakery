@@ -52,6 +52,8 @@ export function OrderDetailDrawer({ orderId, onClose }: Props) {
 
   const isPending = updateStatus.isPending || updateNotes.isPending
 
+  // Sync adminNotes when order data loads from the server
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     if (order) {
       setAdminNotes(order.adminNotes ?? '')
