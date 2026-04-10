@@ -1,0 +1,65 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "bakery-backend/**"
+      - ".github/workflows/backend.yml"
+  pull_request:
+    branches: ["**"]
+    paths:
+      - "bakery-backend/**"
+      - ".github/workflows/backend.yml"
+
+concurrency:
+  group: backend-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: Lint, Type-check & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+          cache-dependency-path: bakery-backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: bakery-backend
+        run: npm ci
+
+      - name: Generate Prisma client
+        working-directory: bakery-backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ci_db
+        run: npx prisma generate
+
+      - name: Type-check
+        working-directory: bakery-backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ci_db
+        run: npm run typecheck
+
+      - name: Build
+        working-directory: bakery-backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ci_db
+        run: npm run build
+
+  deploy:
+    name: Deploy to Render
+    needs: ci
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy backend
+        run: curl -s --fail -X POST "${{ secrets.RENDER_DEPLOY_HOOK_BACKEND }}"

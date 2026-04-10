@@ -1,0 +1,55 @@
+name: Frontend Web CI/CD
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "bakery-frontend/**"
+      - ".github/workflows/frontend.yml"
+  pull_request:
+    branches: ["**"]
+    paths:
+      - "bakery-frontend/**"
+      - ".github/workflows/frontend.yml"
+
+concurrency:
+  group: frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: Lint & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+          cache-dependency-path: bakery-frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: bakery-frontend
+        run: npm ci
+
+      - name: Lint
+        working-directory: bakery-frontend
+        run: npm run lint
+
+      - name: Build
+        working-directory: bakery-frontend
+        run: npm run build
+
+  deploy:
+    name: Deploy to Render
+    needs: ci
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy frontend
+        run: curl -s --fail -X POST "${{ secrets.RENDER_DEPLOY_HOOK_FRONTEND }}"
